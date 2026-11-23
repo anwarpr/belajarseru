@@ -77,207 +77,124 @@
 </head>
 <body class="min-h-screen flex flex-col selection:bg-sky-100 selection:text-sky-900">
 
-  <!-- Auth Gate Overlay (Wajib Daftar / Masuk / Login Google) -->
-  <div id="auth-gate-screen" class="fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-sky-950 to-teal-950 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="w-full max-w-4xl rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 my-auto">
-      <!-- Left Info Column -->
-      <div class="lg:col-span-5 bg-gradient-to-br from-sky-600 via-teal-600 to-emerald-700 text-white p-6 sm:p-8 flex flex-col justify-between gap-6">
-        <div class="space-y-4">
-          <div class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur text-xs font-extrabold">
-            <span>Teman Les 3D</span>
-            <span class="text-amber-200">by anwarpr</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
-            Masuk atau Daftar untuk Membuka Ruang Kelas 3D
-          </h2>
-          <p class="text-xs sm:text-sm text-sky-50 leading-relaxed">
-            Belajar dengan teman les jadi sangat seru, interaktif, dan mudah. Akun kamu dipakai untuk menyimpan riwayat chat guru, jadwal les, dan rekap nilai kuis otomatis.
-          </p>
-        </div>
-
-        <div class="space-y-2.5 text-xs bg-slate-950/20 rounded-2xl p-4 border border-white/15">
-          <div class="font-extrabold text-amber-200">Akses Terlindungi Akun</div>
-          <div>1. Daftar akun baru sebagai Murid atau Guru</div>
-          <div>2. Masuk memakai akun terdaftar atau Login Google</div>
-          <div>3. Nilai kuis dan chat tersimpan sesuai profilmu</div>
-        </div>
-      </div>
-
-      <!-- Right Auth Form Column -->
-      <div class="lg:col-span-7 p-6 sm:p-8 space-y-5">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div class="flex gap-2">
-            <button id="gate-tab-login" type="button" onclick="switchGateTab('login')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition">
-              Masuk Akun
-            </button>
-            <button id="gate-tab-register" type="button" onclick="switchGateTab('register')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-              Daftar Baru
-            </button>
-          </div>
-          <span class="text-[11px] font-bold text-slate-400">Wajib Login</span>
-        </div>
-
-        <!-- Google Sign-In Box -->
-        <div class="space-y-2.5 rounded-2xl bg-slate-50 border border-slate-200 p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs font-extrabold text-slate-800">Masuk Cepat dengan Google</span>
-            <span id="gsi-status-pill" class="text-[11px] font-semibold text-sky-700">Mode Akun Google</span>
-          </div>
-
-          <!-- Official Google Sign-In container when GIS client ID is configured -->
-          <div id="google-gsi-button-container" class="min-h-[40px]"></div>
-
-          <!-- Instant Google Account Picker for local/demo & quick testing -->
-          <button type="button" onclick="openGooglePickerModal()" class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-sky-50 border border-slate-300 text-slate-900 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition">
-            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.5-1.14 2.76-2.4 3.61v3h3.88c2.27-2.09 3.54-5.17 3.54-8.85z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.26v3.09C3.23 21.3 7.31 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.28 14.29c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.26C.46 8.21 0 10.05 0 12s.46 3.79 1.26 5.38l4.02-3.09z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.23 2.7 1.26 6.62l4.02 3.09c.95-2.85 3.6-4.96 6.72-4.96z"/>
-            </svg>
-            <span>Lanjutkan dengan Google</span>
-          </button>
-        </div>
-
-        <!-- Login Form -->
-        <form id="gate-login-form" onsubmit="handleGateLogin(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Email atau Nama Akun Terdaftar</label>
-            <input id="gate-login-identifier" type="text" required placeholder="Contoh: raka@temanles.id atau Raka Pratama" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Kata Sandi</label>
-              <input id="gate-login-password" type="password" required placeholder="Masukkan kata sandi" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Masuk Sebagai</label>
-              <select id="gate-login-role" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-bold bg-white">
-                <option value="Murid">Murid</option>
-                <option value="Guru">Guru</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs sm:text-sm transition">
-            Masuk ke Teman Les 3D
-          </button>
-        </form>
-
-        <!-- Register Form -->
-        <form id="gate-register-form" onsubmit="handleGateRegister(event)" class="space-y-3 hidden">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <button id="btn-choose-murid" type="button" onclick="chooseRegistrationRole('Murid')" class="p-3 rounded-2xl border-2 border-sky-500 bg-sky-50/90 text-left transition hover:bg-sky-100/80">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs sm:text-sm font-extrabold text-sky-950">Daftar jadi Murid</span>
-                <span class="px-2 py-0.5 rounded-md bg-sky-600 text-white text-[10px] font-bold">Murid</span>
-              </div>
-              <div class="text-xs font-semibold text-sky-800 mt-1">ingin belajar</div>
-            </button>
-
-            <button id="btn-choose-guru" type="button" onclick="chooseRegistrationRole('Guru')" class="p-3 rounded-2xl border border-slate-200 bg-white text-left transition hover:border-teal-400 hover:bg-teal-50/60">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs sm:text-sm font-extrabold text-slate-900">Daftar jadi Guru</span>
-                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">Guru</span>
-              </div>
-              <div class="text-xs font-semibold text-slate-600 mt-1">ingin mengajar</div>
-            </button>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
-              <input id="gate-reg-name" type="text" required placeholder="Nama lengkap kamu" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Email Aktif</label>
-              <input id="gate-reg-email" type="email" required placeholder="nama@email.com" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Peran</label>
-              <select id="gate-reg-role" onchange="chooseRegistrationRole(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-bold bg-white">
-                <option value="Murid">Murid</option>
-                <option value="Guru">Guru</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Jenjang</label>
-              <select id="gate-reg-grade" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm font-bold bg-white">
-                <option value="PAUD/TK">PAUD/TK</option>
-                <option value="SD">SD</option>
-                <option value="SMP">SMP</option>
-                <option value="SMA">SMA</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Kata Sandi</label>
-              <input id="gate-reg-password" type="password" required minlength="4" placeholder="Min. 4 karakter" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
-            </div>
-          </div>
-          <button type="submit" class="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs sm:text-sm transition">
-            Daftar & Buka Ruang Kelas 3D
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Google Account Chooser Modal -->
-  <div id="google-picker-modal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs items-center justify-center p-4">
-    <div class="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl p-5 space-y-4">
+  <!-- Modal Masuk & Daftar Akun -->
+  <div id="auth-gate-screen" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl p-6 space-y-4 my-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <h3 class="text-base font-extrabold text-slate-900">Pilih Akun Google</h3>
-          <p class="text-xs text-slate-500">Masuk ke Teman Les 3D dengan akun Google</p>
+          <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-sky-100 text-sky-800">Teman Les 3D by anwarpr</span>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-1">Masuk atau Daftar Akun</h3>
+          <p class="text-xs text-slate-500">Pilih peran Murid atau Guru untuk menyimpan sesi, chat, dan nilai.</p>
         </div>
-        <button type="button" onclick="closeGooglePickerModal()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
-          Batal
+        <button type="button" onclick="closeAuthGate()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+          Tutup
         </button>
       </div>
 
-      <div class="space-y-2">
-        <button type="button" onclick="signInWithGoogleAccount('Raka Pratama', 'raka.pratama@gmail.com', 'Murid', 'SMA')" class="w-full p-3 rounded-xl border border-slate-200 hover:border-sky-400 hover:bg-sky-50/70 flex items-center justify-between text-left transition">
-          <div>
-            <div class="text-xs sm:text-sm font-extrabold text-slate-900">Raka Pratama</div>
-            <div class="text-[11px] text-slate-500">raka.pratama@gmail.com</div>
-          </div>
-          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800">Murid • SMA</span>
+      <div class="flex gap-2">
+        <button id="gate-tab-login" type="button" onclick="switchGateTab('login')" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition">
+          Masuk
         </button>
-
-        <button type="button" onclick="signInWithGoogleAccount('Ibu Ratna Kusuma', 'ratna.kusuma@gmail.com', 'Guru', 'SMP')" class="w-full p-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50/70 flex items-center justify-between text-left transition">
-          <div>
-            <div class="text-xs sm:text-sm font-extrabold text-slate-900">Ibu Ratna Kusuma, S.Pd., M.Pd.</div>
-            <div class="text-[11px] text-slate-500">ratna.kusuma@gmail.com</div>
-          </div>
-          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800">Guru • SMP</span>
+        <button id="gate-tab-register" type="button" onclick="switchGateTab('register')" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          Daftar Akun
         </button>
       </div>
 
-      <form onsubmit="handleCustomGoogleSignIn(event)" class="pt-2 border-t border-slate-100 space-y-2.5">
-        <div class="text-xs font-bold text-slate-700">Atau gunakan email Google lain:</div>
-        <input id="custom-google-name" type="text" required placeholder="Nama akun Google kamu" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
-        <input id="custom-google-email" type="email" required placeholder="alamatkamu@gmail.com" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" />
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="quickLoginDemo('Murid', 'Raka Pratama', 'SMA')" class="p-3 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-left transition">
+          <div class="text-xs font-extrabold text-sky-900">Contoh Murid</div>
+          <div class="text-[11px] text-sky-700">Raka Pratama (SMA)</div>
+        </button>
+        <button type="button" onclick="quickLoginDemo('Guru', 'Ibu Ratna Kusuma, S.Pd., M.Pd.', 'SMP')" class="p-3 rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-left transition">
+          <div class="text-xs font-extrabold text-teal-900">Contoh Guru</div>
+          <div class="text-[11px] text-teal-700">Ibu Ratna Kusuma</div>
+        </button>
+      </div>
+
+      <form id="gate-login-form" onsubmit="handleGateLogin(event)" class="space-y-3 pt-1">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nama atau Email Akun</label>
+          <input id="gate-login-identifier" type="text" required placeholder="Contoh: Raka Pratama atau raka@temanles.id" class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Peran</label>
+            <select id="gate-login-role" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+              <option value="Murid">Murid</option>
+              <option value="Guru">Guru</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Jenjang</label>
+            <select id="gate-login-grade" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+              <option value="PAUD/TK">PAUD/TK</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA">SMA</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-between gap-2 pt-2">
+          <button type="button" onclick="logoutUser()" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">
+            Keluar (Tamu)
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition">
+            Simpan & Masuk
+          </button>
+        </div>
+      </form>
+
+      <form id="gate-register-form" onsubmit="handleGateRegister(event)" class="space-y-3 pt-1 hidden">
         <div class="grid grid-cols-2 gap-2">
-          <select id="custom-google-role" class="rounded-xl border border-slate-300 px-2.5 py-2 text-xs font-bold bg-white">
-            <option value="Murid">Murid</option>
-            <option value="Guru">Guru</option>
-          </select>
-          <select id="custom-google-grade" class="rounded-xl border border-slate-300 px-2.5 py-2 text-xs font-bold bg-white">
-            <option value="PAUD/TK">PAUD/TK</option>
-            <option value="SD">SD</option>
-            <option value="SMP">SMP</option>
-            <option value="SMA">SMA</option>
-          </select>
+          <button id="btn-choose-murid" type="button" onclick="chooseRegistrationRole('Murid')" class="p-2.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-left transition">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-xs font-extrabold text-sky-950">Daftar jadi Murid</span>
+              <span class="px-2 py-0.5 rounded-md bg-sky-600 text-white text-[10px] font-bold">Belajar</span>
+            </div>
+            <div class="text-[11px] font-semibold text-sky-800 mt-0.5">Akses kuis & chat guru</div>
+          </button>
+          <button id="btn-choose-guru" type="button" onclick="chooseRegistrationRole('Guru')" class="p-2.5 rounded-xl border border-slate-200 bg-white text-left transition">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-xs font-extrabold text-slate-900">Daftar jadi Guru</span>
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">Mengajar</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-600 mt-0.5">Atur fokus & pantau nilai</div>
+          </button>
         </div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition">
-          Lanjutkan dengan Akun Google Ini
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+          <input id="gate-reg-name" type="text" required placeholder="Nama lengkap kamu" class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm" />
+        </div>
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Peran</label>
+            <select id="gate-reg-role" onchange="chooseRegistrationRole(this.value)" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-xs sm:text-sm font-semibold bg-white">
+              <option value="Murid">Murid</option>
+              <option value="Guru">Guru</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Jenjang</label>
+            <select id="gate-reg-grade" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-xs sm:text-sm font-semibold bg-white">
+              <option value="PAUD/TK">PAUD/TK</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA">SMA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Email</label>
+            <input id="gate-reg-email" type="email" required placeholder="nama@email.com" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-xs sm:text-sm" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold transition">
+          Daftar & Masuk
         </button>
       </form>
     </div>
   </div>
 
-  <!-- OTP Verification Modal -->
+  <!-- Modal Verifikasi OTP -->
   <div id="otp-modal-backdrop" class="fixed inset-0 z-50 hidden bg-slate-950/65 backdrop-blur-xs items-center justify-center p-4">
     <div class="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -316,17 +233,40 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
+  <!-- Notifikasi Toast -->
   <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-2xl bg-slate-900 text-white px-4 py-3 text-sm font-medium shadow-xl border border-slate-700/80 transition-all"></div>
 
-  <!-- Header -->
+  <!-- Header Navigasi Utama -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-      <!-- Brand -->
-      <a href="#top" class="flex items-center gap-2.5 shrink-0 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 via-teal-600 to-emerald-600 flex items-center justify-center text-white font-extrabold text-base shadow-sm group-hover:scale-105 transition">
-          3D
-        </div>
+      <!-- Logo SVG Isometrik Baru Teman Les 3D -->
+      <a href="#top" class="flex items-center gap-2.5 shrink-0 group" aria-label="Teman Les 3D by anwarpr">
+        <svg class="w-10 h-10 shrink-0 rounded-xl shadow-xs group-hover:scale-105 transition" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tl3d-top" x1="8" y1="5" x2="40" y2="21" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#38BDF8" />
+              <stop offset="100%" stop-color="#0284C7" />
+            </linearGradient>
+            <linearGradient id="tl3d-left" x1="7" y1="13" x2="24" y2="42" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0D9488" />
+              <stop offset="100%" stop-color="#0F766E" />
+            </linearGradient>
+            <linearGradient id="tl3d-right" x1="24" y1="21" x2="41" y2="42" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#F59E0B" />
+              <stop offset="100%" stop-color="#D97706" />
+            </linearGradient>
+          </defs>
+          <!-- Sisi atas kubus isometrik -->
+          <polygon points="24,4 41,13.8 24,23.6 7,13.8" fill="url(#tl3d-top)" />
+          <!-- Sisi kiri kubus isometrik -->
+          <polygon points="7,13.8 24,23.6 24,43.2 7,33.4" fill="url(#tl3d-left)" />
+          <!-- Sisi kanan kubus isometrik -->
+          <polygon points="41,13.8 41,33.4 24,43.2 24,23.6" fill="url(#tl3d-right)" />
+          <!-- Simbol orbit & inti sains pada wajah 3D -->
+          <ellipse cx="24" cy="29.5" rx="8.5" ry="4.2" transform="rotate(-24 24 29.5)" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.92" />
+          <circle cx="24" cy="29.5" r="2.7" fill="#FEF08A" />
+          <circle cx="24" cy="13.8" r="2.2" fill="#FFFFFF" />
+        </svg>
         <div class="leading-tight">
           <div class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 whitespace-nowrap">
             Teman Les 3D
@@ -337,7 +277,7 @@
         </div>
       </a>
 
-      <!-- Desktop Navigation -->
+      <!-- Navigasi Desktop -->
       <nav class="hidden lg:flex items-center gap-1.5 text-sm font-semibold text-slate-700">
         <a href="#ruang-kelas-3d" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-sky-700 transition whitespace-nowrap">Ruang Kelas 3D</a>
         <a href="#direktori-guru" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-sky-700 transition whitespace-nowrap">Cari Guru</a>
@@ -345,7 +285,7 @@
         <a href="#testimoni" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-sky-700 transition whitespace-nowrap">Testimoni</a>
       </nav>
 
-      <!-- Right Action Cluster -->
+      <!-- Tombol Aksi Kanan -->
       <div class="flex items-center gap-2 shrink-0">
         <button id="btn-open-chat-header" type="button" onclick="openChatDrawer()" class="relative inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition whitespace-nowrap">
           <span>Chat Guru</span>
@@ -358,7 +298,7 @@
       </div>
     </div>
 
-    <!-- Mobile Sub-nav -->
+    <!-- Navigasi Mobile -->
     <div class="flex lg:hidden items-center gap-1.5 px-4 py-2 bg-slate-50 border-t border-slate-200/70 overflow-x-auto custom-scroll text-xs font-semibold">
       <a href="#ruang-kelas-3d" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 whitespace-nowrap">Ruang Kelas 3D</a>
       <a href="#direktori-guru" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 whitespace-nowrap">Cari Guru</a>
@@ -368,7 +308,7 @@
   </header>
 
   <main id="top" class="flex-1">
-    <!-- Hero Section -->
+    <!-- Bagian Hero -->
     <section class="relative overflow-hidden bg-gradient-to-b from-sky-50/90 via-white to-slate-50 pt-8 pb-10 sm:pt-12 sm:pb-14 border-b border-slate-200/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -398,7 +338,7 @@
             </div>
           </div>
 
-          <!-- Active Session & Quick Summary Card -->
+          <!-- Kartu Ringkasan Sesi & Jadwal -->
           <div class="lg:col-span-5">
             <div class="rounded-2xl bg-white border border-slate-200/90 shadow-sm p-5 space-y-4">
               <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
@@ -413,7 +353,7 @@
 
               <div class="grid grid-cols-3 gap-2.5 text-center">
                 <div class="rounded-xl bg-sky-50/80 border border-sky-100 p-3">
-                  <div class="text-lg sm:text-xl font-extrabold text-sky-700" id="stat-modules-count">12</div>
+                  <div class="text-lg sm:text-xl font-extrabold text-sky-700" id="stat-modules-count">9</div>
                   <div class="text-[11px] font-semibold text-slate-600">Modul 3D</div>
                 </div>
                 <div class="rounded-xl bg-teal-50/80 border border-teal-100 p-3">
@@ -441,7 +381,7 @@
       </div>
     </section>
 
-    <!-- Ruang Kelas 3D Section -->
+    <!-- Bagian Ruang Kelas 3D -->
     <section id="ruang-kelas-3d" class="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
@@ -456,7 +396,7 @@
           </p>
         </div>
 
-        <!-- Jenjang Filter -->
+        <!-- Filter Jenjang -->
         <div class="flex items-center gap-1.5 flex-wrap" id="grade-filter-buttons">
           <button type="button" data-grade="ALL" onclick="setGradeFilter('ALL')" class="grade-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-900 text-white transition whitespace-nowrap">Semua Jenjang</button>
           <button type="button" data-grade="PAUD/TK" onclick="setGradeFilter('PAUD/TK')" class="grade-filter-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition whitespace-nowrap">PAUD/TK</button>
@@ -466,28 +406,28 @@
         </div>
       </div>
 
-      <!-- Module Selector Strip -->
+      <!-- Pilihan Modul 3D -->
       <div id="module-selector-strip" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
 
-      <!-- 3D Viewport + Inspector -->
+      <!-- Kanvas 3D & Panel Penjelasan -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div class="lg:col-span-7 space-y-3">
           <div class="canvas-shell shadow-sm">
             <canvas id="three-canvas"></canvas>
 
-            <!-- Top-left Watermark -->
+            <!-- Watermark Pojok Kiri Atas -->
             <div class="pointer-events-none absolute top-3 left-3 px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur border border-slate-200/90 text-xs font-extrabold text-slate-800 shadow-xs">
               Teman Les 3D <span class="text-sky-600 font-bold">by anwarpr</span>
             </div>
 
-            <!-- Top-right Camera Reset -->
+            <!-- Tombol Reset Sudut Kamera -->
             <div class="absolute top-3 right-3 flex items-center gap-2">
               <button type="button" onclick="resetCameraView()" class="px-3 py-1.5 rounded-xl bg-white/90 hover:bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-xs transition whitespace-nowrap">
                 Reset Sudut
               </button>
             </div>
 
-            <!-- Bottom Active Module Pill -->
+            <!-- Baris Info Modul Aktif -->
             <div class="pointer-events-none absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900/85 text-white backdrop-blur px-3.5 py-2.5 rounded-xl text-xs">
               <div>
                 <span id="canvas-module-grade" class="px-2 py-0.5 rounded-md bg-sky-500 text-white font-bold mr-1.5">SD</span>
@@ -499,7 +439,7 @@
             </div>
           </div>
 
-          <!-- Part Quick Buttons -->
+          <!-- Tombol Bagian Model 3D -->
           <div class="rounded-2xl bg-white border border-slate-200 p-4">
             <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">
               Bagian pada Model 3D Ini (Klik untuk Fokus)
@@ -508,7 +448,7 @@
           </div>
         </div>
 
-        <!-- Right Inspector Card -->
+        <!-- Kartu Inspektur Bagian Aktif -->
         <div class="lg:col-span-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
           <div class="flex items-start justify-between gap-3">
             <div>
@@ -535,7 +475,7 @@
             </p>
           </div>
 
-          <!-- Teacher Focus Note (if set by Guru) -->
+          <!-- Catatan Fokus dari Guru -->
           <div id="teacher-focus-banner" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900">
             <div class="font-extrabold mb-0.5">Pesan Fokus dari Guru</div>
             <div id="teacher-focus-text"></div>
@@ -551,7 +491,7 @@
       </div>
     </section>
 
-    <!-- Direktori Guru & Jadwal Sesi (Gaya Konsultasi) -->
+    <!-- Bagian Direktori Guru & Jadwal Sesi -->
     <section id="direktori-guru" class="py-10 sm:py-14 bg-white border-y border-slate-200/90">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
@@ -588,7 +528,7 @@
       </div>
     </section>
 
-    <!-- Kuis Interaktif & Rekap Nilai Otomatis + Panel Guru -->
+    <!-- Bagian Kuis & Rekap Nilai Otomatis -->
     <section id="kuis-nilai" class="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-8">
         <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 mb-2">
@@ -603,7 +543,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <!-- Quiz Runner -->
+        <!-- Runner Kuis -->
         <div class="lg:col-span-5 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
           <div class="flex items-center justify-between gap-2">
             <h3 class="text-lg font-extrabold text-slate-900">Kuis Kilat Sains</h3>
@@ -616,14 +556,14 @@
           <div id="quiz-result-box" class="hidden rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs sm:text-sm font-bold text-emerald-900"></div>
         </div>
 
-        <!-- Score Recap Table -->
+        <!-- Tabel Rekap Nilai -->
         <div class="lg:col-span-7 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 class="text-lg font-extrabold text-slate-900">Rekap Nilai Kuis Tersimpan</h3>
               <p class="text-xs text-slate-500">Tersimpan otomatis berdasarkan nama peserta, jenjang, dan modul 3D.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <select id="score-grade-filter" onchange="renderScoresTable()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700">
                 <option value="ALL">Semua Jenjang</option>
                 <option value="PAUD/TK">PAUD/TK</option>
@@ -657,7 +597,7 @@
         </div>
       </div>
 
-      <!-- Teacher Control Panel (Visible when logged in as Guru or toggleable) -->
+      <!-- Panel Pengaturan Guru -->
       <div id="teacher-panel-card" class="mt-6 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 sm:p-6 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
@@ -690,7 +630,7 @@
       </div>
     </section>
 
-    <!-- Testimoni Murid & Orang Tua -->
+    <!-- Bagian Testimoni Murid & Orang Tua -->
     <section id="testimoni" class="py-10 sm:py-14 bg-slate-100/80 border-t border-slate-200/90">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
@@ -715,7 +655,7 @@
 
         <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8"></div>
 
-        <!-- Add Testimonial Form -->
+        <!-- Form Tambah Testimoni -->
         <div class="rounded-2xl bg-white border border-slate-200 p-5 sm:p-6 shadow-xs">
           <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-3">Tulis Pengalaman Belajar Kamu atau Anak</h3>
           <form onsubmit="handleAddTestimonial(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
@@ -751,7 +691,7 @@
     </div>
   </footer>
 
-  <!-- Chat Drawer Modal -->
+  <!-- Drawer Chat Guru dengan Dukungan Gemini AI -->
   <div id="chat-drawer-backdrop" class="fixed inset-0 z-50 hidden bg-slate-950/50 backdrop-blur-xs justify-end">
     <div class="w-full max-w-lg bg-white h-full flex flex-col shadow-2xl border-l border-slate-200">
       <div class="p-4 border-b border-slate-200 flex items-center justify-between gap-3 bg-slate-50">
@@ -766,7 +706,21 @@
 
       <div id="chat-teacher-meta" class="px-4 py-2 bg-sky-50 border-b border-sky-100 text-xs text-sky-900 flex items-center justify-between gap-2"></div>
 
-      <!-- Quick Prompts -->
+      <!-- Baris Konfigurasi Gemini API Key -->
+      <div class="px-4 py-2 bg-amber-50/80 border-b border-amber-200/80 space-y-1.5">
+        <div class="flex items-center justify-between gap-2 text-[11px]">
+          <span class="font-extrabold text-amber-950">Mode Jawaban: Gemini AI + Tutor Sains</span>
+          <span id="gemini-connection-badge" class="px-2 py-0.5 rounded-full font-bold bg-slate-200 text-slate-700">Siap</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <input id="gemini-api-key-input" type="password" placeholder="Opsional: Tempel Gemini API Key (AIza...) untuk respon langsung Gemini" class="flex-1 rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-[11px] text-slate-800" />
+          <button type="button" onclick="saveGeminiApiKey()" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition whitespace-nowrap">
+            Simpan Key
+          </button>
+        </div>
+      </div>
+
+      <!-- Pertanyaan Cepat -->
       <div class="px-4 py-2 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto custom-scroll">
         <button type="button" onclick="sendQuickPrompt('Kak, boleh jelaskan bagian 3D yang sedang aku klik ini?')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-800 text-[11px] font-bold whitespace-nowrap transition">
           Tanya bagian 3D
@@ -779,10 +733,10 @@
         </button>
       </div>
 
-      <!-- Messages Feed -->
+      <!-- Riwayat Pesan -->
       <div id="chat-messages-feed" class="flex-1 p-4 space-y-3 overflow-y-auto custom-scroll bg-slate-50/60"></div>
 
-      <!-- Input Form -->
+      <!-- Input Kirim Pesan -->
       <form onsubmit="handleSendChatMessage(event)" class="p-3.5 border-t border-slate-200 bg-white flex items-center gap-2">
         <input id="chat-message-input" type="text" required placeholder="Tulis pertanyaan ke guru..." class="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm" />
         <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm transition whitespace-nowrap">
@@ -792,7 +746,7 @@
     </div>
   </div>
 
-  <!-- Auth Modal (Guru & Murid) -->
+  <!-- Modal Masuk Cepat -->
   <div id="auth-modal-backdrop" class="fixed inset-0 z-50 hidden bg-slate-950/50 backdrop-blur-xs items-center justify-center p-4">
     <div class="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl p-6 space-y-4">
       <div class="flex items-center justify-between">
@@ -866,6 +820,9 @@
       focusNote: 'temanles3d_focus_note_v1'
     };
 
+    const GEMINI_KEY_STORAGE = 'temanles3d_gemini_api_key_v1';
+
+    // Katalog modul sains 3D lintas jenjang PAUD/TK, SD, SMP, dan SMA
     const MODULES_3D = [
       {
         id: 'paud-bentuk-warna',
@@ -1325,7 +1282,7 @@
       try {
         localStorage.setItem(key, JSON.stringify(value));
       } catch {
-        // ignore storage quota errors
+        // Abaikan error penyimpanan jika kuota penuh
       }
     }
 
@@ -1342,7 +1299,7 @@
 
     let state = {
       gradeFilter: 'ALL',
-      activeModuleId: MODULES_3D[2].id, // SD Siklus Air default
+      activeModuleId: MODULES_3D[2].id,
       activePartId: null,
       testiFilter: 'ALL',
       session: loadJSON(STORAGE_KEYS.session, null),
@@ -1366,12 +1323,14 @@
       activeChatTeacherId: TEACHERS[0].id
     };
 
-    // Three.js state
+    // Variabel utama Three.js
     let scene, camera, renderer, controls, modelGroup;
-    let pickables = []; // { mesh, part, focusPoint }
+    let pickables = [];
     let raycaster = new THREE.Raycaster();
     let pointer = new THREE.Vector2();
     let pointerDownPos = { x: 0, y: 0 };
+    let highlightRing = null;
+    let animatedMeshes = [];
 
     function getActiveModule() {
       return MODULES_3D.find(m => m.id === state.activeModuleId) || MODULES_3D[0];
@@ -1455,6 +1414,7 @@
       document.getElementById('canvas-picked-badge').textContent = `Aktif: ${part.name}`;
 
       renderPartButtons(mod);
+      updatePartHighlight(part.id);
 
       if (focusCamera && camera && controls) {
         const targetPos = new THREE.Vector3(part.pos[0], part.pos[1], part.pos[2]);
@@ -1497,6 +1457,11 @@
           child.userData.partId = part.id;
           child.castShadow = true;
           child.receiveShadow = true;
+          if (child.material && child.material.clone) {
+            child.material = child.material.clone();
+            child.userData.baseEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0x000000);
+            child.userData.baseEmissiveIntensity = child.material.emissiveIntensity || 0;
+          }
         }
       });
       pickables.push({
@@ -1505,13 +1470,47 @@
         focusPoint: new THREE.Vector3(focusCoord[0], focusCoord[1], focusCoord[2])
       });
 
-      // Add a crisp marker pin directly on the part's coordinate
-      const pinGeo = new THREE.SphereGeometry(0.11, 16, 16);
-      const pinMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0369a1, emissiveIntensity: 0.35, roughness: 0.25 });
-      const pin = new THREE.Mesh(pinGeo, pinMat);
-      pin.position.set(focusCoord[0], focusCoord[1] + 0.42, focusCoord[2]);
-      pin.userData.partId = part.id;
-      modelGroup.add(pin);
+      const pinGroup = new THREE.Group();
+      pinGroup.position.set(focusCoord[0], focusCoord[1] + 0.58, focusCoord[2]);
+
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.11, 18, 18),
+        new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0284c7, emissiveIntensity: 0.45, roughness: 0.2 })
+      );
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, 0.24, 10),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 })
+      );
+      stem.position.y = -0.14;
+
+      pinGroup.add(head, stem);
+      pinGroup.userData.partId = part.id;
+      head.userData.partId = part.id;
+      stem.userData.partId = part.id;
+      modelGroup.add(pinGroup);
+      animatedMeshes.push({ mesh: pinGroup, type: 'pin', baseY: pinGroup.position.y });
+    }
+
+    function updatePartHighlight(activeId) {
+      if (!modelGroup) return;
+      pickables.forEach(item => {
+        const isSelected = item.part.id === activeId;
+        item.object.traverse(child => {
+          if (child.isMesh && child.material && child.material.emissive) {
+            if (isSelected) {
+              child.material.emissive.setHex(0x0ea5e9);
+              child.material.emissiveIntensity = 0.35;
+            } else {
+              child.material.emissive.copy(child.userData.baseEmissive || new THREE.Color(0x000000));
+              child.material.emissiveIntensity = child.userData.baseEmissiveIntensity || 0;
+            }
+          }
+        });
+        if (isSelected && highlightRing) {
+          highlightRing.visible = true;
+          highlightRing.position.copy(item.focusPoint);
+        }
+      });
     }
 
     function build3DSceneForModule(mod) {
@@ -1521,41 +1520,254 @@
       }
       modelGroup = new THREE.Group();
       pickables = [];
+      animatedMeshes = [];
 
-      const p0 = mod.parts[0]?.pos || [-1.5, 0.5, 0];
-      const p1 = mod.parts[1]?.pos || [0, 0.5, 0];
-      const p2 = mod.parts[2]?.pos || [1.5, 0.5, 0];
+      highlightRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.82, 0.03, 14, 48),
+        new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.4, roughness: 0.25 })
+      );
+      highlightRing.visible = false;
+      modelGroup.add(highlightRing);
 
       if (mod.buildType === 'paud-shapes') {
         const cube = new THREE.Mesh(
           new THREE.BoxGeometry(1.15, 1.15, 1.15),
-          new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.35 })
+          new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.32 })
         );
-        cube.position.set(p0[0], 0.1, p0[2]);
+        cube.position.set(-1.75, 0.1, 0);
         modelGroup.add(cube);
-        registerPickable(cube, mod.parts[0], [p0[0], 0.1, p0[2]]);
+        registerPickable(cube, mod.parts[0], [-1.75, 0.1, 0]);
+        animatedMeshes.push({ mesh: cube, type: 'slow-spin' });
 
         const sphere = new THREE.Mesh(
           new THREE.SphereGeometry(0.68, 32, 32),
-          new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.25 })
+          new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.22 })
         );
-        sphere.position.set(p1[0], 0.15, p1[2]);
+        sphere.position.set(0, 0.12, 0.15);
         modelGroup.add(sphere);
-        registerPickable(sphere, mod.parts[1], [p1[0], 0.15, p1[2]]);
+        registerPickable(sphere, mod.parts[1], [0, 0.12, 0.15]);
 
         const cone = new THREE.Mesh(
-          new THREE.ConeGeometry(0.72, 1.25, 32),
+          new THREE.ConeGeometry(0.74, 1.28, 32),
+          new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.28 })
+        );
+        cone.position.set(1.8, 0.12, 0);
+        modelGroup.add(cone);
+        registerPickable(cone, mod.parts[2], [1.8, 0.12, 0]);
+      } else if (mod.buildType === 'paud-weather') {
+        const sunGroup = new THREE.Group();
+        const sunCore = new THREE.Mesh(
+          new THREE.SphereGeometry(0.58, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xeab308, emissiveIntensity: 0.25, roughness: 0.25 })
+        );
+        sunGroup.add(sunCore);
+        for (let i = 0; i < 8; i++) {
+          const ang = (i / 8) * Math.PI * 2;
+          const ray = new THREE.Mesh(
+            new THREE.ConeGeometry(0.09, 0.28, 12),
+            new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.3 })
+          );
+          ray.position.set(Math.cos(ang) * 0.82, Math.sin(ang) * 0.82, 0);
+          ray.rotation.z = ang - Math.PI / 2;
+          sunGroup.add(ray);
+        }
+        sunGroup.position.set(-1.55, 0.65, 0);
+        modelGroup.add(sunGroup);
+        registerPickable(sunGroup, mod.parts[0], [-1.55, 0.65, 0]);
+        animatedMeshes.push({ mesh: sunGroup, type: 'slow-spin' });
+
+        const cloudGroup = new THREE.Group();
+        [[-0.45, -0.05, 0], [0, 0.15, 0.1], [0.45, -0.05, 0]].forEach(([cx, cy, cz]) => {
+          const puff = new THREE.Mesh(
+            new THREE.SphereGeometry(0.46, 24, 24),
+            new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45 })
+          );
+          puff.position.set(cx, cy, cz);
+          cloudGroup.add(puff);
+        });
+        cloudGroup.position.set(0.85, 0.72, 0);
+        modelGroup.add(cloudGroup);
+        registerPickable(cloudGroup, mod.parts[1], [0.85, 0.72, 0]);
+
+        const rainGroup = new THREE.Group();
+        [-0.35, 0, 0.35].forEach((rx, idx) => {
+          const drop = new THREE.Mesh(
+            new THREE.ConeGeometry(0.11, 0.26, 16),
+            new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.2 })
+          );
+          drop.rotation.x = Math.PI;
+          drop.position.set(rx, -idx * 0.12, 0.15);
+          rainGroup.add(drop);
+        });
+        rainGroup.position.set(0.85, -0.35, 0.15);
+        modelGroup.add(rainGroup);
+        registerPickable(rainGroup, mod.parts[2], [0.85, -0.35, 0.15]);
+        animatedMeshes.push({ mesh: rainGroup, type: 'bob', baseY: -0.35 });
+      } else if (mod.buildType === 'sd-water-cycle') {
+        const sea = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.38, 1.1),
+          new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.25 })
+        );
+        sea.position.set(-1.45, -0.75, 0.2);
+        modelGroup.add(sea);
+
+        const evapGroup = new THREE.Group();
+        [-0.25, 0.25].forEach((ex, i) => {
+          const arrow = new THREE.Mesh(
+            new THREE.ConeGeometry(0.13, 0.32, 16),
+            new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.25 })
+          );
+          arrow.position.set(ex, i * 0.22, 0);
+          evapGroup.add(arrow);
+        });
+        evapGroup.position.set(-1.45, -0.1, 0.25);
+        modelGroup.add(evapGroup);
+        registerPickable(evapGroup, mod.parts[0], [-1.45, -0.1, 0.25]);
+        animatedMeshes.push({ mesh: evapGroup, type: 'bob', baseY: -0.1 });
+
+        const cloud = new THREE.Group();
+        [[-0.4, 0, 0], [0, 0.2, 0.1], [0.42, 0, 0]].forEach(([x, y, z]) => {
+          const b = new THREE.Mesh(new THREE.SphereGeometry(0.42, 22, 22), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4 }));
+          b.position.set(x, y, z);
+          cloud.add(b);
+        });
+        cloud.position.set(0.2, 0.85, 0);
+        modelGroup.add(cloud);
+        registerPickable(cloud, mod.parts[1], [0.2, 0.85, 0]);
+
+        const rain = new THREE.Group();
+        [-0.25, 0.1, 0.4].forEach((dx, i) => {
+          const d = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 14), new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.2 }));
+          d.scale.set(0.8, 1.35, 0.8);
+          d.position.set(dx, -i * 0.18, 0.15);
+          rain.add(d);
+        });
+        rain.position.set(1.45, 0.05, 0.15);
+        modelGroup.add(rain);
+        registerPickable(rain, mod.parts[2], [1.45, 0.05, 0.15]);
+        animatedMeshes.push({ mesh: rain, type: 'bob', baseY: 0.05 });
+      } else if (mod.buildType === 'sd-solar') {
+        const sun = new THREE.Mesh(
+          new THREE.SphereGeometry(0.76, 32, 32),
+          new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.35, roughness: 0.25 })
+        );
+        sun.position.set(-1.75, 0.05, 0);
+        modelGroup.add(sun);
+        registerPickable(sun, mod.parts[0], [-1.75, 0.05, 0]);
+        animatedMeshes.push({ mesh: sun, type: 'slow-spin' });
+
+        const earth = new THREE.Mesh(
+          new THREE.SphereGeometry(0.45, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.35 })
+        );
+        earth.position.set(0.15, 0.15, 0.25);
+        modelGroup.add(earth);
+        registerPickable(earth, mod.parts[1], [0.15, 0.15, 0.25]);
+        animatedMeshes.push({ mesh: earth, type: 'slow-spin' });
+
+        const saturnGroup = new THREE.Group();
+        const saturnPlanet = new THREE.Mesh(
+          new THREE.SphereGeometry(0.52, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.35 })
+        );
+        const saturnRing = new THREE.Mesh(
+          new THREE.RingGeometry(0.68, 1.08, 40),
+          new THREE.MeshStandardMaterial({ color: 0xfde68a, side: THREE.DoubleSide, roughness: 0.45 })
+        );
+        saturnRing.rotation.x = Math.PI * 0.38;
+        saturnGroup.add(saturnPlanet, saturnRing);
+        saturnGroup.position.set(1.95, -0.05, -0.1);
+        modelGroup.add(saturnGroup);
+        registerPickable(saturnGroup, mod.parts[2], [1.95, -0.05, -0.1]);
+        animatedMeshes.push({ mesh: saturnGroup, type: 'slow-spin' });
+      } else if (mod.buildType === 'earth-layers') {
+        const crust = new THREE.Mesh(
+          new THREE.SphereGeometry(1.12, 36, 36, 0, Math.PI * 1.55, 0, Math.PI),
+          new THREE.MeshStandardMaterial({ color: 0x16a34a, side: THREE.DoubleSide, roughness: 0.45 })
+        );
+        crust.position.set(-0.2, 0.05, 0);
+        modelGroup.add(crust);
+        registerPickable(crust, mod.parts[0], [-0.2, 1.05, 0.2]);
+
+        const mantle = new THREE.Mesh(
+          new THREE.SphereGeometry(0.84, 32, 32),
+          new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.35 })
+        );
+        mantle.position.set(0.35, 0.05, 0.25);
+        modelGroup.add(mantle);
+        registerPickable(mantle, mod.parts[1], [0.75, 0.25, 0.55]);
+
+        const core = new THREE.Mesh(
+          new THREE.SphereGeometry(0.42, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xeab308, emissiveIntensity: 0.3, roughness: 0.2 })
+        );
+        core.position.set(0.45, 0.05, 0.45);
+        modelGroup.add(core);
+        registerPickable(core, mod.parts[2], [0.45, 0.05, 0.75]);
+      } else if (mod.buildType === 'smp-lungs') {
+        const trachea = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.16, 0.16, 0.9, 20),
+          new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.35 })
+        );
+        trachea.position.set(0, 0.85, 0.1);
+        modelGroup.add(trachea);
+        registerPickable(trachea, mod.parts[0], [0, 0.85, 0.1]);
+
+        const lungsGroup = new THREE.Group();
+        const leftLung = new THREE.Mesh(
+          new THREE.SphereGeometry(0.56, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.35 })
+        );
+        leftLung.scale.set(0.85, 1.25, 0.75);
+        leftLung.position.set(-0.62, 0.05, 0.1);
+
+        const rightLung = new THREE.Mesh(
+          new THREE.SphereGeometry(0.56, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.35 })
+        );
+        rightLung.scale.set(0.85, 1.25, 0.75);
+        rightLung.position.set(0.62, 0.05, 0.1);
+        lungsGroup.add(leftLung, rightLung);
+        modelGroup.add(lungsGroup);
+        registerPickable(lungsGroup, mod.parts[1], [-0.62, 0.05, 0.15]);
+
+        const diaphragm = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.15, 1.2, 0.14, 28),
+          new THREE.MeshStandardMaterial({ color: 0x0d9488, roughness: 0.4 })
+        );
+        diaphragm.position.set(0, -0.78, 0.1);
+        modelGroup.add(diaphragm);
+        registerPickable(diaphragm, mod.parts[2], [0, -0.78, 0.15]);
+        animatedMeshes.push({ mesh: lungsGroup, type: 'breathe' });
+      } else if (mod.buildType === 'smp-cell') {
+        const membrane = new THREE.Mesh(
+          new THREE.TorusGeometry(1.35, 0.14, 18, 48),
+          new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.3 })
+        );
+        membrane.position.set(-0.15, 0.05, 0);
+        modelGroup.add(membrane);
+        registerPickable(membrane, mod.parts[2], [-1.35, -0.2, 0.15]);
+
+        const nucleus = new THREE.Mesh(
+          new THREE.SphereGeometry(0.54, 28, 28),
+          new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.3 })
+        );
+        nucleus.position.set(-0.15, 0.05, 0.1);
+        modelGroup.add(nucleus);
+        registerPickable(nucleus, mod.parts[0], [-0.15, 0.05, 0.25]);
+
+        const mito = new THREE.Mesh(
+          new THREE.CapsuleGeometry(0.24, 0.55, 12, 20),
           new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3 })
         );
-        cone.position.set(p2[0], 0.12, p2[2]);
-        modelGroup.add(cone);
-        registerPickable(cone, mod.parts[2], [p2[0], 0.12, p2[2]]);
+        mito.rotation.z = 0.5;
+        mito.position.set(1.15, 0.35, 0.2);
+        modelGroup.add(mito);
+        registerPickable(mito, mod.parts[1], [1.15, 0.35, 0.25]);
       } else if (mod.buildType === 'sma-h2o') {
-        // Bent H2O molecule with ~104.5 deg angle
         const oPos = new THREE.Vector3(0, 0.72, 0.1);
         const angleRad = THREE.MathUtils.degToRad(104.5);
         const bondLen = 1.45;
-        // Symmetric around negative Y axis: half-angle = 52.25 deg from -Y
         const halfAngle = angleRad / 2;
         const h1Pos = new THREE.Vector3(
           -Math.sin(halfAngle) * bondLen,
@@ -1592,7 +1804,6 @@
         modelGroup.add(h2Mesh);
         registerPickable(h2Mesh, mod.parts[2], [h2Pos.x, h2Pos.y, h2Pos.z]);
 
-        // Bonds
         [h1Pos, h2Pos].forEach(hVec => {
           const dir = new THREE.Vector3().subVectors(hVec, oPos);
           const len = dir.length();
@@ -1617,13 +1828,11 @@
         );
         modelGroup.add(waveTube);
 
-        // Axis line
         const axis = new THREE.Mesh(
           new THREE.CylinderGeometry(0.02, 0.02, 4.2, 8),
           new THREE.MeshStandardMaterial({ color: 0x94a3b8 })
         );
         axis.rotation.z = Math.PI / 2;
-        axis.position.y = 0;
         modelGroup.add(axis);
 
         const crest = new THREE.Mesh(
@@ -1649,30 +1858,10 @@
         wlMarker.position.set(1.35, 0.15, 0.15);
         modelGroup.add(wlMarker);
         registerPickable(wlMarker, mod.parts[2], [1.35, 0.15, 0.15]);
-      } else {
-        // Structured multi-part scientific assembly for weather, water cycle, solar, earth, lungs, cell
-        const colors = [0x0ea5e9, 0x14b8a6, 0xf59e0b];
-        const geometries = [
-          new THREE.SphereGeometry(0.58, 32, 32),
-          new THREE.DodecahedronGeometry(0.64, 0),
-          new THREE.CylinderGeometry(0.52, 0.62, 0.95, 24)
-        ];
-
-        mod.parts.slice(0, 3).forEach((part, idx) => {
-          const mesh = new THREE.Mesh(
-            geometries[idx % geometries.length],
-            new THREE.MeshStandardMaterial({ color: colors[idx % colors.length], roughness: 0.32 })
-          );
-          const x = part.pos[0] * 0.85;
-          const y = part.pos[1] * 0.72;
-          const z = part.pos[2] * 0.5;
-          mesh.position.set(x, y, z);
-          modelGroup.add(mesh);
-          registerPickable(mesh, part, [x, y, z]);
-        });
       }
 
       scene.add(modelGroup);
+      updatePartHighlight(state.activePartId);
       resetCameraView();
     }
 
@@ -1718,7 +1907,7 @@
       canvas.addEventListener('pointerup', e => {
         const dx = Math.abs(e.clientX - pointerDownPos.x);
         const dy = Math.abs(e.clientY - pointerDownPos.y);
-        if (dx > 6 || dy > 6) return; // Ignore orbit drag
+        if (dx > 6 || dy > 6) return;
 
         const bounds = canvas.getBoundingClientRect();
         pointer.x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1;
@@ -1748,15 +1937,31 @@
 
       selectModule(state.activeModuleId);
 
+      const clock = new THREE.Clock();
       function animate() {
         requestAnimationFrame(animate);
+        const elapsed = clock.getElapsedTime();
+
+        animatedMeshes.forEach(item => {
+          if (item.type === 'pin') {
+            item.mesh.position.y = item.baseY + Math.sin(elapsed * 3.2) * 0.06;
+          } else if (item.type === 'bob') {
+            item.mesh.position.y = (item.baseY ?? 0) + Math.sin(elapsed * 2.5) * 0.08;
+          } else if (item.type === 'slow-spin') {
+            item.mesh.rotation.y += 0.006;
+          } else if (item.type === 'breathe') {
+            const s = 1 + Math.sin(elapsed * 2.2) * 0.04;
+            item.mesh.scale.set(s, s, s);
+          }
+        });
+
         controls.update();
         renderer.render(scene, camera);
       }
       animate();
     }
 
-    // Teachers & Booking
+    // Direktori Guru & Jadwal Sesi
     window.renderTeachers = function() {
       const grid = document.getElementById('teachers-grid');
       if (!grid) return;
@@ -1853,7 +2058,7 @@
       `).join('');
     }
 
-    // Chat Drawer
+    // Ruang Chat Guru & Integrasi Gemini AI
     function populateChatSelect() {
       const sel = document.getElementById('chat-teacher-select');
       if (!sel) return;
@@ -1863,6 +2068,7 @@
 
     window.openChatDrawer = function() {
       populateChatSelect();
+      updateGeminiBadge();
       renderChatMessages();
       const backdrop = document.getElementById('chat-drawer-backdrop');
       backdrop.classList.remove('hidden');
@@ -1884,6 +2090,7 @@
       const sel = document.getElementById('chat-teacher-select');
       if (!sel) return;
       state.activeChatTeacherId = sel.value;
+      updateGeminiBadge();
       renderChatMessages();
     };
 
@@ -1908,7 +2115,7 @@
                 ? 'bg-sky-600 text-white rounded-br-sm'
                 : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm shadow-2xs'
             }">
-              ${m.text}
+              ${String(m.text || '').replace(/\n/g, '<br>')}
             </div>
           </div>
         `;
@@ -1920,16 +2127,162 @@
       if (badge) badge.textContent = String(totalMsgs);
     }
 
-    function appendMessageToActiveChat(text) {
+    function getSavedGeminiKey() {
+      try {
+        return (document.getElementById('gemini-api-key-input')?.value || localStorage.getItem(GEMINI_KEY_STORAGE) || '').trim();
+      } catch {
+        return '';
+      }
+    }
+
+    window.saveGeminiApiKey = function() {
+      const input = document.getElementById('gemini-api-key-input');
+      const key = (input?.value || '').trim();
+      try {
+        if (key) localStorage.setItem(GEMINI_KEY_STORAGE, key);
+        else localStorage.removeItem(GEMINI_KEY_STORAGE);
+      } catch {
+        // Abaikan error penyimpanan
+      }
+      updateGeminiBadge();
+      showToast(
+        key
+          ? 'Gemini API Key tersimpan. Chat guru akan terhubung ke Gemini AI!'
+          : 'API Key dikosongkan. Menggunakan mode jawab pertanyaan kontekstual bawaan.'
+      );
+    };
+
+    function updateGeminiBadge() {
+      const badge = document.getElementById('gemini-connection-badge');
+      const input = document.getElementById('gemini-api-key-input');
+      let saved = '';
+      try {
+        saved = localStorage.getItem(GEMINI_KEY_STORAGE) || '';
+      } catch {
+        saved = '';
+      }
+      if (input && saved && !input.value) input.value = saved;
+      if (!badge) return;
+      if (saved) {
+        badge.textContent = 'Gemini AI Aktif';
+        badge.className = 'px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+      } else {
+        badge.textContent = 'Jawab Kontekstual (Tanpa Key)';
+        badge.className = 'px-2 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 border border-sky-200';
+      }
+    }
+
+    function buildContextualTutorAnswer(questionText, teacher) {
+      const q = questionText.toLowerCase();
+      const mod = getActiveModule();
+      const part = mod.parts.find(p => p.id === state.activePartId) || mod.parts[0];
+
+      if (q.includes('jam') || q.includes('jadwal') || q.includes('kosong') || q.includes('les')) {
+        return `Jadwal aktif ${teacher.name} hari ini adalah pukul ${teacher.hours}, dengan slot tersedia di: ${teacher.slots.join(', ')}. Kamu juga bisa langsung klik jam tersebut di kartu guru untuk menyimpannya ke jadwal lesmu.`;
+      }
+
+      if (q.includes('soal') || q.includes('latihan') || q.includes('kuis') || q.includes('contoh')) {
+        return `Latihan singkat untuk modul "${mod.title}" (${mod.grade}):\n• Pertanyaan: ${mod.quiz.q}\n• Pilihan: ${mod.quiz.options.join(' / ')}\n• Kunci & alasan: Jawabannya adalah "${mod.quiz.options[mod.quiz.answer]}". Coba amati bagian "${part ? part.name : mod.title}" pada model 3D agar makin mantap!`;
+      }
+
+      if (q.includes('h2o') || (q.includes('air') && (q.includes('104') || q.includes('polar') || q.includes('ikatan') || q.includes('bengkok')))) {
+        return `Molekul air (H2O) memiliki sudut ikatan sekitar 104,5° dengan geometri bengkok (bent) karena tolakan pasangan elektron bebas pada atom oksigen (O). Karena bentuknya tidak simetris dan atom O lebih elektronegatif daripada H, molekul H2O bersifat polar (memiliki kutub parsial negatif δ- di O dan parsial positif δ+ di H).`;
+      }
+
+      const matchedPart = mod.parts.find(p =>
+        q.includes(p.id.replace(/-/g, ' ')) ||
+        p.name.toLowerCase().split(/[\s(]+/).some(token => token.length >= 4 && q.includes(token))
+      );
+      const targetPart = matchedPart || part;
+
+      if (q.includes('bagian') || q.includes('apa itu') || q.includes('jelaskan') || q.includes('kenapa') || q.includes('mengapa') || q.includes('bagaimana') || matchedPart) {
+        return `Pada modul ${mod.grade} "${mod.title}", bagian ${targetPart.name} menjelaskan bahwa ${targetPart.desc.charAt(0).toLowerCase() + targetPart.desc.slice(1)} Tips belajarnya: ${targetPart.tip}`;
+      }
+
+      return `Untuk pertanyaan "${questionText}", mari kita kaitkan dengan materi ${mod.grade} "${mod.title}" (bagian aktif: ${targetPart.name}). ${targetPart.desc} Catatan tambahan: ${targetPart.tip} Jika kamu ingin jawaban generatif penuh dari Gemini, masukkan Gemini API Key di kolom di atas ya.`;
+    }
+
+    async function callGeminiApi(promptText, teacher) {
+      const apiKey = getSavedGeminiKey();
+      if (!apiKey) return null;
+
+      const mod = getActiveModule();
+      const part = mod.parts.find(p => p.id === state.activePartId) || mod.parts[0];
+      const history = (state.chats[teacher.id] || []).slice(-6).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }));
+
+      const systemInstruction = `Kamu adalah ${teacher.name}, guru pendamping sains di aplikasi "Teman Les 3D by anwarpr". Jawablah dalam bahasa Indonesia yang ramah, jelas, edukatif, dan sesuai tingkat pemahaman murid. Konteks ruang kelas 3D saat ini: Jenjang ${mod.grade}, Modul "${mod.title}", Bagian 3D aktif "${part ? part.name : '-'}" (${part ? part.desc : ''}). Langsung jawab inti pertanyaan murid terlebih dahulu sebelum memberi penjelasan ringkas.`;
+
+      const contents = [
+        ...history,
+        {
+          role: 'user',
+          parts: [{ text: `${systemInstruction}\n\nPertanyaan murid: ${promptText}` }]
+        }
+      ];
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents,
+            generationConfig: {
+              temperature: 0.65,
+              maxOutputTokens: 500
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const candidateText = data?.candidates?.[0]?.content?.parts
+        ?.map(p => p.text)
+        .filter(Boolean)
+        .join('\n')
+        .trim();
+
+      if (!candidateText) {
+        throw new Error('Respon kosong dari Gemini');
+      }
+      return candidateText;
+    }
+
+    async function appendMessageToActiveChat(text) {
       const tid = state.activeChatTeacherId;
       if (!state.chats[tid]) state.chats[tid] = [];
       state.chats[tid].push({ sender: 'user', text });
 
-      const teacher = TEACHERS.find(t => t.id === tid) || TEACHERS[0];
-      const replyText = `Terima kasih atas pertanyaannya! Untuk topik ${teacher.specialty}, coba perhatikan kembali bagian yang tampil di Ruang Kelas 3D lalu beri tahu langkah mana yang ingin kita bahas lebih lanjut.`;
-      state.chats[tid].push({ sender: 'guru', text: replyText });
-
+      const thinkingIndex = state.chats[tid].length;
+      state.chats[tid].push({ sender: 'guru', text: 'Sedang menyusun jawaban sesuai pertanyaanmu...' });
       saveJSON(STORAGE_KEYS.chats, state.chats);
+      updateGeminiBadge();
+      renderChatMessages();
+
+      const teacher = TEACHERS.find(t => t.id === tid) || TEACHERS[0];
+      let replyText = '';
+
+      if (getSavedGeminiKey()) {
+        try {
+          replyText = await callGeminiApi(text, teacher);
+        } catch (err) {
+          replyText = `${buildContextualTutorAnswer(text, teacher)}\n\n(Catatan koneksi Gemini: ${err.message})`;
+        }
+      } else {
+        replyText = buildContextualTutorAnswer(text, teacher);
+      }
+
+      state.chats[tid][thinkingIndex] = { sender: 'guru', text: replyText };
+      saveJSON(STORAGE_KEYS.chats, state.chats);
+      updateGeminiBadge();
       renderChatMessages();
     }
 
@@ -1954,7 +2307,7 @@
       appendMessageToActiveChat(msg);
     };
 
-    // Quiz & Scores
+    // Kuis & Rekap Nilai
     function populateQuizSelect() {
       const qSel = document.getElementById('quiz-module-select');
       const tSel = document.getElementById('teacher-focus-module');
@@ -2076,7 +2429,7 @@
       showToast('Riwayat nilai kuis telah dikosongkan.');
     };
 
-    // Teacher Focus Note
+    // Catatan Fokus Guru
     window.saveTeacherFocusNote = function() {
       const modId = document.getElementById('teacher-focus-module')?.value || MODULES_3D[0].id;
       const noteText = document.getElementById('teacher-focus-input')?.value.trim();
@@ -2102,7 +2455,7 @@
       }
     }
 
-    // Testimonials
+    // Testimoni
     window.setTestimonialFilter = function(role) {
       state.testiFilter = role;
       document.querySelectorAll('.testi-filter-btn').forEach(btn => {
@@ -2155,28 +2508,25 @@
       showToast('Terima kasih! Testimoni berhasil ditambahkan.');
     };
 
-    // Auth Modal
+    // Autentikasi & Sesi
     window.openAuthModal = function() {
-      if (state.session) {
-        document.getElementById('auth-name-input').value = state.session.name || '';
-        document.getElementById('auth-role-select').value = state.session.role || 'Murid';
-        document.getElementById('auth-grade-select').value = state.session.grade || 'SD';
-      }
-      const m = document.getElementById('auth-modal-backdrop');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
+      const gate = document.getElementById('auth-gate-screen');
+      if (gate) gate.classList.remove('hidden');
     };
 
     window.closeAuthModal = function() {
       const m = document.getElementById('auth-modal-backdrop');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
+      if (m) {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      }
     };
 
     window.quickLoginDemo = function(role, name, grade) {
-      state.session = { name, role, grade };
+      state.session = { name, role, grade, provider: 'Akun Demo' };
       saveJSON(STORAGE_KEYS.session, state.session);
       renderAuthUI();
+      closeAuthGate();
       closeAuthModal();
       showToast(`Masuk sebagai ${role}: ${name}`);
     };
@@ -2187,9 +2537,10 @@
       const role = document.getElementById('auth-role-select').value;
       const grade = document.getElementById('auth-grade-select').value;
       if (!name) return;
-      state.session = { name, role, grade };
+      state.session = { name, role, grade, provider: 'Akun' };
       saveJSON(STORAGE_KEYS.session, state.session);
       renderAuthUI();
+      closeAuthGate();
       closeAuthModal();
       showToast(`Selamat datang, ${name} (${role})`);
     };
@@ -2201,23 +2552,20 @@
       const muridBtn = document.getElementById('btn-choose-murid');
       const guruBtn = document.getElementById('btn-choose-guru');
       if (muridBtn && guruBtn) {
+        const muridBadge = muridBtn.querySelector('span:last-child');
+        const guruBadge = guruBtn.querySelector('span:last-child');
         if (role === 'Murid') {
-          muridBtn.className = 'p-3 rounded-2xl border-2 border-sky-500 bg-sky-50/90 text-left transition hover:bg-sky-100/80';
-          muridBtn.querySelector('span:last-child').className = 'px-2 py-0.5 rounded-md bg-sky-600 text-white text-[10px] font-bold';
-          guruBtn.className = 'p-3 rounded-2xl border border-slate-200 bg-white text-left transition hover:border-teal-400 hover:bg-teal-50/60';
-          guruBtn.querySelector('span:last-child').className = 'px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold';
+          muridBtn.className = 'p-2.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-left transition';
+          if (muridBadge) muridBadge.className = 'px-2 py-0.5 rounded-md bg-sky-600 text-white text-[10px] font-bold';
+          guruBtn.className = 'p-2.5 rounded-xl border border-slate-200 bg-white text-left transition';
+          if (guruBadge) guruBadge.className = 'px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold';
         } else {
-          guruBtn.className = 'p-3 rounded-2xl border-2 border-teal-500 bg-teal-50/90 text-left transition hover:bg-teal-100/80';
-          guruBtn.querySelector('span:last-child').className = 'px-2 py-0.5 rounded-md bg-teal-600 text-white text-[10px] font-bold';
-          muridBtn.className = 'p-3 rounded-2xl border border-slate-200 bg-white text-left transition hover:border-sky-400 hover:bg-sky-50/60';
-          muridBtn.querySelector('span:last-child').className = 'px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold';
+          guruBtn.className = 'p-2.5 rounded-xl border-2 border-teal-500 bg-teal-50 text-left transition';
+          if (guruBadge) guruBadge.className = 'px-2 py-0.5 rounded-md bg-teal-600 text-white text-[10px] font-bold';
+          muridBtn.className = 'p-2.5 rounded-xl border border-slate-200 bg-white text-left transition';
+          if (muridBadge) muridBadge.className = 'px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold';
         }
       }
-    };
-
-    window.openRegisterWithRole = function(role) {
-      window.switchGateTab('register');
-      window.chooseRegistrationRole(role);
     };
 
     window.switchGateTab = function(tab) {
@@ -2228,11 +2576,11 @@
       const isLogin = tab === 'login';
       if (loginTab && regTab) {
         loginTab.className = isLogin
-          ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition'
-          : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+          ? 'flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition'
+          : 'flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
         regTab.className = !isLogin
-          ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition'
-          : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+          ? 'flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-900 text-white transition'
+          : 'flex-1 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
       }
       if (loginForm && regForm) {
         loginForm.classList.toggle('hidden', !isLogin);
@@ -2313,88 +2661,45 @@
       saveJSON(STORAGE_KEYS.pendingOtp, null);
       closeOtpModal();
       renderAuthUI();
+      closeAuthGate();
       showToast(`Verifikasi OTP berhasil! Selamat datang, ${state.session.name}.`);
+    };
+
+    window.closeAuthGate = function() {
+      const gate = document.getElementById('auth-gate-screen');
+      if (gate) gate.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
     };
 
     window.handleGateLogin = function(e) {
       e.preventDefault();
-      const identifier = document.getElementById('gate-login-identifier').value.trim().toLowerCase();
-      const password = document.getElementById('gate-login-password').value;
+      const identifier = document.getElementById('gate-login-identifier').value.trim();
       const role = document.getElementById('gate-login-role').value;
-
-      const matched = state.users.find(
-        u => (u.email.toLowerCase() === identifier || u.name.toLowerCase() === identifier) && u.password === password
-      );
-
-      if (!matched) {
-        showToast('Akun atau kata sandi belum cocok. Silakan daftar baru atau masuk dengan Google.');
-        return;
-      }
-
-      startOtpChallenge({
-        name: matched.name,
-        email: matched.email,
-        role: role || matched.role,
-        grade: matched.grade || 'SD',
-        provider: matched.provider || 'Akun Terdaftar'
-      });
+      const grade = document.getElementById('gate-login-grade').value;
+      if (!identifier) return;
+      const displayName = identifier.includes('@') ? identifier.split('@')[0] : identifier;
+      const emailVal = identifier.includes('@') ? identifier : `${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@temanles.id`;
+      startOtpChallenge({ name: displayName, email: emailVal, role, grade, provider: 'Akun' });
     };
 
     window.handleGateRegister = function(e) {
       e.preventDefault();
       const name = document.getElementById('gate-reg-name').value.trim();
-      const email = document.getElementById('gate-reg-email').value.trim().toLowerCase();
+      const email = document.getElementById('gate-reg-email').value.trim();
       const role = document.getElementById('gate-reg-role').value;
       const grade = document.getElementById('gate-reg-grade').value;
-      const password = document.getElementById('gate-reg-password').value;
-      if (!name || !email || !password) return;
-
-      const newUser = { name, email, password, role, grade, provider: 'Akun Terdaftar' };
-      e.target.reset();
-      startOtpChallenge(
-        { name, email, role, grade, provider: 'Akun Terdaftar' },
-        newUser
-      );
-    };
-
-    window.openGooglePickerModal = function() {
-      const m = document.getElementById('google-picker-modal');
-      if (m) {
-        m.classList.remove('hidden');
-        m.classList.add('flex');
-      }
-    };
-
-    window.closeGooglePickerModal = function() {
-      const m = document.getElementById('google-picker-modal');
-      if (m) {
-        m.classList.add('hidden');
-        m.classList.remove('flex');
-      }
-    };
-
-    window.signInWithGoogleAccount = function(name, email, role, grade) {
-      closeGooglePickerModal();
-      startOtpChallenge({ name, email, role, grade, provider: 'Google' });
-    };
-
-    window.handleCustomGoogleSignIn = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('custom-google-name').value.trim();
-      const email = document.getElementById('custom-google-email').value.trim();
-      const role = document.getElementById('custom-google-role').value;
-      const grade = document.getElementById('custom-google-grade').value;
       if (!name || !email) return;
-      signInWithGoogleAccount(name, email, role, grade);
-      e.target.reset();
+      const newRecord = { name, email, role, grade, provider: 'Akun Baru' };
+      startOtpChallenge(newRecord, newRecord);
     };
 
     window.logoutUser = function() {
       state.session = null;
       saveJSON(STORAGE_KEYS.session, null);
       renderAuthUI();
+      closeAuthGate();
       closeAuthModal();
-      showToast('Anda telah keluar. Silakan daftar atau masuk kembali untuk mengakses platform.');
+      showToast('Kembali ke mode tamu.');
     };
 
     function renderAuthUI() {
@@ -2403,6 +2708,8 @@
       const heroSummary = document.getElementById('hero-account-summary');
       const heroBadge = document.getElementById('hero-role-badge');
       const panelRole = document.getElementById('panel-current-role');
+      const focusBtn = document.querySelector('#teacher-panel-card button[onclick="saveTeacherFocusNote()"]');
+      const focusInput = document.getElementById('teacher-focus-input');
 
       if (state.session) {
         if (gate) gate.classList.add('hidden');
@@ -2414,8 +2721,7 @@
           ? 'px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 whitespace-nowrap'
           : 'px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 whitespace-nowrap';
         if (panelRole) panelRole.textContent = `${state.session.role} (${state.session.name})`;
-        const focusBtn = document.querySelector('#teacher-panel-card button[onclick="saveTeacherFocusNote()"]');
-        const focusInput = document.getElementById('teacher-focus-input');
+
         const isTeacher = state.session.role === 'Guru';
         if (focusBtn) {
           focusBtn.disabled = !isTeacher;
@@ -2428,19 +2734,27 @@
           focusInput.title = isTeacher ? 'Catatan fokus guru' : 'Hanya peran Guru yang dapat mengubah catatan fokus';
         }
       } else {
-        if (gate) gate.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
+        document.body.classList.remove('overflow-hidden');
         btnLabel.textContent = 'Masuk / Daftar';
-        heroSummary.textContent = 'Wajib Masuk atau Daftar';
-        heroBadge.textContent = 'Terkunci';
+        heroSummary.textContent = 'Mode Tamu (Belum Masuk)';
+        heroBadge.textContent = 'Tamu';
         heroBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 whitespace-nowrap';
-        if (panelRole) panelRole.textContent = 'Belum Masuk';
+        if (panelRole) panelRole.textContent = 'Tamu';
+        if (focusBtn) {
+          focusBtn.disabled = true;
+          focusBtn.className = 'px-4 py-2 rounded-xl bg-slate-700 text-slate-400 font-extrabold text-xs sm:text-sm cursor-not-allowed whitespace-nowrap';
+        }
+        if (focusInput) {
+          focusInput.disabled = true;
+          focusInput.title = 'Masuk sebagai Guru untuk mengubah catatan fokus';
+        }
       }
     }
 
-    // Initial boot
+    // Inisialisasi aplikasi
     document.getElementById('stat-modules-count').textContent = String(MODULES_3D.length);
     renderAuthUI();
+    closeAuthGate();
     renderModuleSelector();
     populateQuizSelect();
     loadQuizForModule();
@@ -2449,6 +2763,7 @@
     renderBookingsSummary();
     renderTestimonials();
     renderFocusBanner();
+    updateGeminiBadge();
     renderChatMessages();
     initThree();
   </script>
