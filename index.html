@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3dFunlearn · Belajar Sains 3D (by anwarpr)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .hotspot-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .hotspot-pin:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+    .hotspot-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: #0284C7;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    }
+    .hotspot-pin.active .hotspot-dot {
+      background: #0D9488;
+      transform: scale(1.2);
+      box-shadow: 0 0 0 6px rgba(13, 148, 136, 0.22);
+    }
+    .hotspot-label {
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.84);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0.92;
+    }
+    .hotspot-pin.active .hotspot-label {
+      background: #0F766E;
+      opacity: 1;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .anwarpr-watermark {
+      user-select: none;
+      pointer-events: none;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <button onclick="switchMainView('landing')" class="flex items-center gap-2.5 text-left group focus:outline-none">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-600 to-teal-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition">
+            <i data-lucide="box" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-base tracking-tight text-slate-900">3dFunlearn</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-sky-100 text-sky-800 border border-sky-200">anwarpr</span>
+            </div>
+            <p class="text-[11px] text-slate-500 hidden sm:block">Belajar Sains 3D · IPA Kelas 8</p>
+          </div>
+        </button>
+
+        <nav id="studio-breadcrumb" class="hidden md:flex items-center gap-1.5 text-xs text-slate-500 pl-3 ml-1 border-l border-slate-200">
+          <button onclick="switchMainView('landing')" class="hover:text-sky-700 font-medium">Beranda</button>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span class="font-medium text-slate-700">Studio 3D</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span id="breadcrumb-module-name" class="font-semibold text-sky-700">Sistem Pernapasan</span>
+        </nav>
+      </div>
+
+      <nav id="landing-nav" class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+        <a href="#cara-kerja" onclick="switchMainView('landing')" class="hover:text-sky-700 transition">Cara Kerja</a>
+        <a href="#modul" onclick="switchMainView('landing')" class="hover:text-sky-700 transition">Modul</a>
+        <a href="#mode-kelas" onclick="switchMainView('landing')" class="hover:text-sky-700 transition">Mode Kelas</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openQrModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition">
+          <i data-lucide="qr-code" class="w-4 h-4 text-sky-700"></i>
+          <span class="hidden sm:inline">QR & Bagikan</span>
+        </button>
+        <button onclick="openStudio('pernapasan')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-sm transition">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i>
+          <span>Buka Studio 3D</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- VIEW 1: LANDING PAGE -->
+  <main id="view-landing" class="flex-1">
+    <!-- HERO -->
+    <section class="relative overflow-hidden bg-gradient-to-b from-sky-50/80 via-white to-[#F8FAFC] border-b border-slate-200/70">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6 space-y-5">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>MEDIA BELAJAR 3D · BY ANWARPR</span>
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
+            Belajar tidak berhenti di halaman buku.
+          </h1>
+          <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
+            Jelajahi anatomi paru-paru, struktur molekul air ($	ext{H}_2	ext{O}$) VSEPR $104,5^\circ$, hingga irisan lapisan bumi dalam ruang 3D interaktif yang bisa diputar, dibuka, dan diselami langsung di browser.
+          </p>
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <button onclick="openStudio('pernapasan')" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-600/20 transition">
+              <i data-lucide="cube" class="w-4 h-4"></i>
+              <span>Mulai Eksplorasi 3D</span>
+            </button>
+            <button onclick="openStudio('molekul')" class="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-sm border border-slate-200 transition">
+              <i data-lucide="atom" class="w-4 h-4 text-teal-600"></i>
+              <span>Lihat Molekul $	ext{H}_2	ext{O}$</span>
+            </button>
+            <button onclick="openQrModal()" class="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 font-semibold text-sm border border-teal-200 transition">
+              <i data-lucide="qr-code" class="w-4 h-4"></i>
+              <span>Kode QR Kelas</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-5 pt-2 text-xs font-medium text-slate-500">
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-teal-600"></i> Tanpa instal aplikasi</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-teal-600"></i> Kurikulum IPA Kelas 8</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-teal-600"></i> Kuis & Simulasi Real-Time</span>
+          </div>
+        </div>
+
+        <!-- HERO LIVE 3D SHOWCASE -->
+        <div class="lg:col-span-6">
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5" id="hero-model-switcher">
+                <button data-hero-model="lungs" onclick="setHeroModel('lungs')" class="hero-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white transition">Paru-paru 3D</button>
+                <button data-hero-model="molecule" onclick="setHeroModel('molecule')" class="hero-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition">Molekul $	ext{H}_2	ext{O}$</button>
+                <button data-hero-model="earth" onclick="setHeroModel('earth')" class="hero-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition">Lapisan Bumi</button>
+              </div>
+              <span id="hero-model-badge" class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                Inspirasi & Ekspirasi Aktif
+              </span>
+            </div>
+
+            <div class="relative h-[340px] sm:h-[380px] bg-gradient-to-b from-slate-100 to-sky-50/70">
+              <div id="hero-3d-canvas" class="w-full h-full"></div>
+              <div class="anwarpr-watermark absolute bottom-3 left-3 z-10 px-2.5 py-1 rounded-md bg-white/85 backdrop-blur border border-slate-200/90 text-[11px] font-extrabold text-slate-700 shadow-sm">
+                anwarpr · 3dFunlearn
+              </div>
+              <div class="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-md bg-slate-900/75 text-white text-[11px] font-medium">
+                Seret untuk memutar · Scroll untuk zoom
+              </div>
+            </div>
+
+            <div class="px-4 py-3 bg-white border-t border-slate-100 flex items-center justify-between text-xs">
+              <p id="hero-model-caption" class="text-slate-600 font-medium">
+                3 lobus kanan, 2 lobus kiri + takik jantung, cincin trakea, dan aliran $	ext{O}_2$ / $	ext{CO}_2$.
+              </p>
+              <button id="hero-open-btn" onclick="openStudio('pernapasan')" class="text-sky-700 hover:text-sky-800 font-bold shrink-0 ml-3 inline-flex items-center gap-1">
+                <span>Buka</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 PILLARS: PUTAR. BUKA. SELAMi. -->
+    <section id="cara-kerja" class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+      <div class="max-w-2xl mb-8">
+        <p class="text-xs font-extrabold uppercase tracking-wider text-sky-700 mb-1">Cara Kerja</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Putar. Buka. Selami.</h2>
+        <p class="text-slate-600 mt-2 text-sm sm:text-base">
+          Dirancang agar siswa mudah memahami konsep abstrak sains melalui manipulasi langsung objek tiga dimensi.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center mb-4">
+            <i data-lucide="rotate-3d" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-lg text-slate-900 mb-1.5">Putar.</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Amati bentuk organ, sudut ikatan molekul, dan struktur geologi dari segala sudut dengan kontrol putar dan zoom yang mulus.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center mb-4">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-lg text-slate-900 mb-1.5">Buka.</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Aktifkan Mode X-Ray / Irisan untuk melihat bagian dalam paru-paru, elektron & awan molekul $	ext{H}_2	ext{O}$, serta inti bumi.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
+            <i data-lucide="crosshair" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-lg text-slate-900 mb-1.5">Selami.</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Klik pin titik belajar untuk mengarahkan kamera ke bagian spesifik, membaca fakta kunci, lalu uji pemahaman lewat kuis 5 soal.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 MODUL IPA KELAS 8 -->
+    <section id="modul" class="max-w-7xl mx-auto px-4 sm:px-6 pb-14">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-wider text-teal-700 mb-1">Katalog Kurikulum</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">6 Modul IPA Kelas 8</h2>
+          <p class="text-slate-600 mt-1 text-sm">4 modul 3D interaktif siap digunakan penuh hari ini, ditambah 2 modul lanjutan dalam antrean.</p>
+        </div>
+        <button onclick="openStudio('pernapasan')" class="self-start sm:self-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+          Masuk ke Studio 3D
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Modul 1 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm hover:border-sky-300 transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">MODUL 01 · AKTIF</span>
+              <span class="text-xs font-semibold text-slate-500">Biologi</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Sistem Pernapasan</h3>
+            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              Paru-paru 3 & 2 lobus, takik jantung, trakea bercincin, bronkiolus, alveolus, diafragma, tulang rusuk, dan pertukaran gas $	ext{O}_2$/$	ext{CO}_2$.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-teal-700">Simulasi Napas + Kuis</span>
+            <button onclick="openStudio('pernapasan')" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition">
+              Buka Modul
+            </button>
+          </div>
+        </div>
+
+        <!-- Modul 2 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm hover:border-sky-300 transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">MODUL 02 · AKTIF</span>
+              <span class="text-xs font-semibold text-slate-500">Biologi</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Jantung & Peredaran Darah</h3>
+            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              4 ruang jantung (serambi & bilik kanan/kiri), aorta, pembuluh arteri/vena, serta sirkulasi darah kaya oksigen dan karbon dioksida.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-teal-700">Detak Jantung + Kuis</span>
+            <button onclick="openStudio('jantung')" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition">
+              Buka Modul
+            </button>
+          </div>
+        </div>
+
+        <!-- Modul 3 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm hover:border-sky-300 transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800">MODUL 03 · AKTIF</span>
+              <span class="text-xs font-semibold text-slate-500">Kimia & Fisika</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Struktur Atom & Molekul Air ($	ext{H}_2	ext{O}$)</h3>
+            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              Geometri VSEPR tekuk $104,5^\circ$, atom oksigen & dua hidrogen, ikatan kovalen, pasangan elektron bebas, awan elektron, dan elektron mengorbit.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-teal-700">Orbital 3D + Kuis</span>
+            <button onclick="openStudio('molekul')" class="px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition">
+              Buka Modul
+            </button>
+          </div>
+        </div>
+
+        <!-- Modul 4 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between shadow-sm hover:border-sky-300 transition">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">MODUL 04 · AKTIF</span>
+              <span class="text-xs font-semibold text-slate-500">Ilmu Bumi</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Struktur Lapisan Bumi</h3>
+            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+              Irisan kuadran kerak bumi & atmosfer tipis, mantel pijar, inti luar cair, hingga inti dalam padat dengan informasi kedalaman & suhu.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-amber-700">Irisan Inti + Kuis</span>
+            <button onclick="openStudio('bumi')" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition">
+              Buka Modul
+            </button>
+          </div>
+        </div>
+
+        <!-- Modul 5 -->
+        <div class="bg-white/80 rounded-2xl border border-dashed border-slate-300 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">MODUL 05 · SEGERA</span>
+              <span class="text-xs font-semibold text-slate-400">Biologi</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-700">Sistem Pencernaan Manusia</h3>
+            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              Alur pencernaan mekanis dan kimiawi dari mulut, kerongkongan, lambung, usus halus bervili, hingga usus besar.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-medium text-slate-400">Dalam pengembangan</span>
+            <button onclick="openStudio('pernapasan')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+              Coba Modul 01
+            </button>
+          </div>
+        </div>
+
+        <!-- Modul 6 -->
+        <div class="bg-white/80 rounded-2xl border border-dashed border-slate-300 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">MODUL 06 · SEGERA</span>
+              <span class="text-xs font-semibold text-slate-400">Fisika</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-700">Getaran, Gelombang & Cahaya</h3>
+            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              Visualisasi amplitudo, panjang gelombang, pemantulan, pembiasan lensa, dan perambatan gelombang bunyi 3D.
+            </p>
+          </div>
+          <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] font-medium text-slate-400">Dalam pengembangan</span>
+            <button onclick="openStudio('molekul')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+              Coba Modul 03
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODE KELAS & QR -->
+    <section id="mode-kelas" class="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+      <div class="bg-gradient-to-r from-sky-700 via-sky-800 to-teal-800 rounded-3xl p-6 sm:p-10 text-white shadow-lg flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="space-y-3 max-w-2xl">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-bold">
+            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+            MODE KELAS & BERBAGI CEPAT
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+            Tayangkan di layar kelas, bagikan lewat QR atau tautan.
+          </h2>
+          <p class="text-sky-100 text-sm sm:text-base leading-relaxed">
+            Guru dapat menampilkan model 3D di proyektor atau layar kelas, sementara siswa membuka modul yang sama di HP masing-masing dengan watermark identitas <strong>anwarpr</strong> yang tetap terjaga.
+          </p>
+          <div class="pt-2 flex flex-wrap gap-3">
+            <button onclick="openQrModal()" class="px-4 py-2.5 rounded-xl bg-white text-sky-900 font-bold text-xs sm:text-sm hover:bg-sky-50 transition inline-flex items-center gap-2">
+              <i data-lucide="qr-code" class="w-4 h-4"></i>
+              <span>Tampilkan Kode QR</span>
+            </button>
+            <button onclick="openStudio('bumi')" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm border border-white/25 transition">
+              Jelajahi Lapisan Bumi
+            </button>
+          </div>
+        </div>
+        <div class="bg-white text-slate-900 rounded-2xl p-4 shadow-xl w-full max-w-[240px] text-center shrink-0">
+          <canvas id="landing-qr-canvas" width="180" height="180" class="mx-auto rounded-lg"></canvas>
+          <p class="text-xs font-extrabold mt-2 text-slate-900">3dFunlearn · anwarpr</p>
+          <p class="text-[11px] text-slate-500">Scan untuk membuka modul</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- VIEW 2: STUDIO 3D INTERAKTIF -->
+  <section id="view-studio" class="hidden flex-1 flex flex-col bg-[#F8FAFC]">
+    <!-- Module Switcher Bar -->
+    <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 overflow-x-auto custom-scroll">
+        <div class="flex items-center gap-1.5 shrink-0" id="studio-module-tabs">
+          <button data-mod="pernapasan" onclick="selectModule('pernapasan')" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white transition">
+            01 · Sistem Pernapasan
+          </button>
+          <button data-mod="jantung" onclick="selectModule('jantung')" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            02 · Jantung & Darah
+          </button>
+          <button data-mod="molekul" onclick="selectModule('molekul')" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            03 · Molekul $	ext{H}_2	ext{O}$ & Atom
+          </button>
+          <button data-mod="bumi" onclick="selectModule('bumi')" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            04 · Lapisan Bumi
+          </button>
+        </div>
+
+        <button onclick="switchMainView('landing')" class="text-xs font-semibold text-slate-600 hover:text-slate-900 shrink-0 inline-flex items-center gap-1">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          <span>Semua Modul</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-COLUMN WORKSPACE -->
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- LEFT SIDEBAR: PARTS & CONTROLS -->
+      <aside class="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-4 flex flex-col gap-4 shadow-sm max-h-[780px] overflow-y-auto custom-scroll">
+        <div>
+          <span id="studio-mod-tag" class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800">MODUL 01</span>
+          <h2 id="studio-mod-title" class="text-lg font-extrabold text-slate-900 mt-1.5">Sistem Pernapasan</h2>
+          <p id="studio-mod-subtitle" class="text-xs text-slate-500">IPA Kelas 8 · Anatomi & Mekanisme</p>
+        </div>
+
+        <!-- Parts List -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Bagian & Titik Belajar</h3>
+            <span id="studio-parts-count" class="text-[11px] font-bold text-sky-700">6 bagian</span>
+          </div>
+          <div id="studio-parts-list" class="space-y-1.5"></div>
+        </div>
+
+        <!-- Mode & Simulation Controls -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Kontrol Interaktif</h3>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-xray" onclick="toggleXray()" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="scan-eye" class="w-3.5 h-3.5 text-sky-700"></i>
+              <span id="btn-xray-label">X-Ray: Off</span>
+            </button>
+            <button id="btn-reset-cam" onclick="resetCamera()" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-teal-700"></i>
+              <span>Reset Kamera</span>
+            </button>
+          </div>
+
+          <div id="sim-control-box" class="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="sim-label" class="text-[11px] font-bold text-slate-700">Kecepatan Napas</span>
+              <span id="sim-value-badge" class="text-[11px] font-extrabold text-sky-700">Normal</span>
+            </div>
+            <div id="sim-presets" class="grid grid-cols-4 gap-1"></div>
+          </div>
+
+          <button onclick="openQuizModal()" class="w-full py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition">
+            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+            <span>Mulai Kuis Modul (5 Soal)</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CENTER: 3D VIEWPORT -->
+      <div class="lg:col-span-6 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[460px] lg:min-h-[680px]">
+        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+            <span id="hud-status-text" class="text-xs font-bold text-slate-700">Fase: Inspirasi · Rongga Dada Mengembang</span>
+          </div>
+          <span id="hud-metric-text" class="text-[11px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+            Diafragma Kontraksi
+          </span>
+        </div>
+
+        <div id="studio-viewport-container" class="relative flex-1 bg-gradient-to-b from-slate-100 via-sky-50/40 to-slate-100 select-none">
+          <div id="studio-3d-canvas" class="w-full h-full"></div>
+          <div id="hotspots-layer" class="absolute inset-0 pointer-events-none"></div>
+
+          <!-- Permanent Watermark -->
+          <div class="anwarpr-watermark absolute bottom-3 left-3 z-20 px-2.5 py-1 rounded-md bg-white/90 backdrop-blur border border-slate-200 text-[11px] font-extrabold text-slate-800 shadow-sm">
+            anwarpr · 3dFunlearn
+          </div>
+
+          <!-- Quick Pin Toggle -->
+          <button onclick="toggleHotspots()" id="btn-toggle-pins" class="absolute bottom-3 right-3 z-20 px-2.5 py-1 rounded-md bg-slate-900/80 hover:bg-slate-900 text-white text-[11px] font-semibold flex items-center gap-1 transition">
+            <i data-lucide="map-pin" class="w-3 h-3 text-sky-300"></i>
+            <span id="pin-toggle-label">Pin Aktif</span>
+          </button>
+        </div>
+
+        <!-- Bottom Part Quick Pills -->
+        <div id="bottom-part-pills" class="px-3 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto custom-scroll"></div>
+      </div>
+
+      <!-- RIGHT SIDEBAR: DETAIL ORGAN / STRUKTUR -->
+      <aside class="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-4 flex flex-col gap-4 shadow-sm max-h-[780px] overflow-y-auto custom-scroll">
+        <div>
+          <span id="detail-kicker" class="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">DETAIL BAGIAN</span>
+          <h2 id="detail-title" class="text-xl font-extrabold text-slate-900 mt-0.5">Paru-paru (Keseluruhan)</h2>
+          <p id="detail-tagline" class="text-xs font-semibold text-sky-700 mt-0.5">Pusat pertukaran $	ext{O}_2$ dan $	ext{CO}_2$ tubuh</p>
+        </div>
+
+        <p id="detail-desc" class="text-xs text-slate-600 leading-relaxed"></p>
+
+        <div>
+          <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mb-2">Fakta Kunci</h3>
+          <div id="detail-facts" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <div>
+          <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mb-2">Alur / Struktur Terkait</h3>
+          <ol id="detail-pathway" class="space-y-1.5 text-xs"></ol>
+        </div>
+
+        <div class="rounded-xl bg-amber-50 border border-amber-200/90 p-3">
+          <div class="flex items-center gap-1.5 text-amber-900 font-extrabold text-xs mb-1">
+            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-600 shrink-0"></i>
+            <span>Tahukah Kamu?</span>
+          </div>
+          <p id="detail-funfact" class="text-xs text-amber-950/85 leading-relaxed"></p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-5 px-4 sm:px-6 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div class="flex items-center gap-2 font-semibold text-slate-700">
+        <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-extrabold text-[11px]">anwarpr</span>
+        <span>3dFunlearn · Media Pembelajaran Sains 3D Interaktif</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <button onclick="switchMainView('landing')" class="hover:text-slate-900">Beranda</button>
+        <button onclick="openStudio('pernapasan')" class="hover:text-slate-900">Studio 3D</button>
+        <button onclick="openQrModal()" class="hover:text-slate-900">Bagikan / QR</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- QUIZ MODAL -->
+  <div id="quiz-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden">
+      <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">KUIS INTERAKTIF · 5 SOAL</span>
+          <h3 id="quiz-modal-title" class="font-extrabold text-base text-slate-900">Kuis Sistem Pernapasan</h3>
+        </div>
+        <button onclick="closeQuizModal()" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="quiz-body" class="p-5 max-h-[75vh] overflow-y-auto custom-scroll"></div>
+    </div>
+  </div>
+
+  <!-- QR & SHARE MODAL -->
+  <div id="qr-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 text-center space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-sky-700">Bagikan & Akses Kelas</span>
+        <button onclick="closeQrModal()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-500">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 inline-block mx-auto">
+        <canvas id="modal-qr-canvas" width="184" height="184" class="mx-auto"></canvas>
+      </div>
+      <div>
+        <p class="font-extrabold text-slate-900">3dFunlearn · by anwarpr</p>
+        <p class="text-xs text-slate-500 mt-0.5">Scan kode QR untuk membuka modul di HP siswa</p>
+      </div>
+      <div class="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs">
+        <input id="share-url-input" type="text" readonly class="bg-transparent flex-1 text-slate-700 font-medium focus:outline-none truncate" />
+        <button onclick="copyShareUrl()" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold shrink-0">
+          Salin
+        </button>
+      </div>
+      <p id="copy-feedback" class="text-xs font-bold text-teal-700 h-4"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // =========================================================
+    // MODULE DATA (4 FULL INTERACTIVE 3D MODULES)
+    // =========================================================
+    const MODULES = {
+      pernapasan: {
+        id: 'pernapasan',
+        tag: 'MODUL 01',
+        title: 'Sistem Pernapasan',
+        subtitle: 'IPA Kelas 8 · Paru-paru, Alveolus & Mekanisme Napas',
+        simLabel: 'Kecepatan Napas',
+        simOptions: [
+          { label: 'Santai', speed: 0.65, badge: 'Santai (~12x/mnt)' },
+          { label: 'Normal', speed: 1.0, badge: 'Normal (~16x/mnt)' },
+          { label: 'Olahraga', speed: 1.85, badge: 'Olahraga (~28x/mnt)' },
+          { label: 'Jeda', speed: 0.0, badge: 'Jeda / Paus' }
+        ],
+        defaultSimIndex: 1,
+        parts: [
+          {
+            id: 'lungs_all',
+            name: 'Paru-paru (Keseluruhan)',
+            shortName: 'Paru-paru',
+            kicker: 'ORGAN UTAMA · PERNAPASAN',
+            tagline: 'Pabrik pertukaran $	ext{O}_2$ dan $	ext{CO}_2$ tubuh',
+            desc: 'Sepasang organ spons elastis di rongga dada yang dilindungi tulang rusuk. Paru-paru kanan memiliki 3 lobus, sedangkan paru-paru kiri memiliki 2 lobus dan takik jantung (cardiac notch).',
+            camPos: [0, 1.3, 6.4],
+            camTarget: [0, 0.9, 0],
+            pinPos: [0, 1.45, 1.2],
+            facts: [
+              { label: 'Jumlah Lobus', value: 'Kanan 3 lobus · Kiri 2 lobus' },
+              { label: 'Frekuensi Napas', value: '± 12–20 kali per menit' },
+              { label: 'Kadar $	ext{O}_2$ Udara', value: '± 21% dihirup · ± 16% dihembuskan' }
+            ],
+            pathway: ['Rongga Hidung', 'Faring', 'Laring', 'Trakea', 'Bronkus', 'Bronkiolus', 'Alveolus'],
+            funfact: 'Jika seluruh permukaan alveolus dibentangkan, luasnya mencapai sekitar 70 m²—setara luas lantai ruang kelas!'
+          },
+          {
+            id: 'trachea',
+            name: 'Trakea & Cincin Tulang Rawann',
+            shortName: 'Trakea',
+            kicker: 'SALURAN UDARA UTAMA',
+            tagline: 'Diperkuat cincin tulang rawan huruf C agar tetap terbuka',
+            desc: 'Batang tenggorokan yang menghubungkan laring ke bronkus kanan dan kiri. Cincin tulang rawan hialin mencegah saluran mengempis saat tekanan udara berubah.',
+            camPos: [0.4, 2.5, 4.3],
+            camTarget: [0, 2.35, 0],
+            pinPos: [0, 2.45, 0.45],
+            facts: [
+              { label: 'Struktur Dinding', value: 'Cincin tulang rawan berbentuk C' },
+              { label: 'Lapisan Dalam', value: 'Silia & lendir penyaring debu' }
+            ],
+            pathway: ['Laring', 'Trakea', 'Percabangan Karina', 'Bronkus'],
+            funfact: 'Silia pada trakea menyapu lendir dan partikel asing ke arah tenggorokan agar bisa dikeluarkan.'
+          },
+          {
+            id: 'bronchi',
+            name: 'Bronkus & Bronkiolus',
+            shortName: 'Bronkus',
+            kicker: 'PERCABANGAN PARU',
+            tagline: 'Menyalurkan udara ke seluruh lobus paru kiri dan kanan',
+            desc: 'Trakea bercabang menjadi bronkus utama kanan dan kiri yang masuk ke masing-masing paru, lalu terus bercabang halus menjadi bronkiolus tanpa cincin tulang rawan.',
+            camPos: [-1.4, 1.5, 4.4],
+            camTarget: [0, 1.3, 0],
+            pinPos: [0.65, 1.55, 0.55],
+            facts: [
+              { label: 'Bronkus Kanan', value: 'Lebih lebar, pendek & curam' },
+              { label: 'Bronkiolus', value: 'Bercabang halus menuju alveolus' }
+            ],
+            pathway: ['Trakea', 'Bronkus Kanan/Kiri', 'Bronkiolus', 'Duktus Alveolaris'],
+            funfact: 'Bronkiolus memiliki otot polos yang bisa melebar (bronkodilatasi) atau menyempit (bronkokonstriksi).'
+          },
+          {
+            id: 'alveoli',
+            name: 'Alveolus & Pertukaran Gas',
+            shortName: 'Alveolus',
+            kicker: 'UNIT DIFUSI GAS',
+            tagline: 'Tempat $	ext{O}_2$ masuk ke darah dan $	ext{CO}_2$ keluar',
+            desc: 'Kantung udara mikroskopis berbentuk seperti anggur di ujung bronkiolus yang dikelilingi jaring kapiler darah berdinding sangat tipis untuk difusi gas.',
+            camPos: [1.6, 0.85, 3.6],
+            camTarget: [0.95, 0.7, 0.4],
+            pinPos: [1.15, 0.72, 0.75],
+            facts: [
+              { label: 'Mekanisme', value: 'Difusi pasif akibat beda tekanan' },
+              { label: 'Arah Gas', value: '$	ext{O}_2 ightarrow$ kapiler · $	ext{CO}_2 ightarrow$ alveolus' }
+            ],
+            pathway: ['Bronkiolus Terminal', 'Sakus Alveolaris', 'Alveolus', 'Kapiler Darah'],
+            funfact: 'Dinding alveolus dan kapiler hanya setebal satu lapis sel sehingga pertukaran gas berlangsung sangat cepat.'
+          },
+          {
+            id: 'diaphragm',
+            name: 'Diafragma',
+            shortName: 'Diafragma',
+            kicker: 'OTOT PERNAPASAN UTAMA',
+            tagline: 'Berkontraksi mendatar saat menarik napas (inspirasi)',
+            desc: 'Sekat otot berbentuk kubah di dasar rongga dada. Saat berkontraksi dan mendatar, volume rongga dada membesar sehingga tekanan udara paru turun dan udara masuk.',
+            camPos: [0, 0.1, 5.2],
+            camTarget: [0, -0.35, 0],
+            pinPos: [0, -0.35, 0.9],
+            facts: [
+              { label: 'Saat Inspirasi', value: 'Berkontraksi & bergerak turun/mendatar' },
+              { label: 'Saat Ekspirasi', value: 'Relaksasi & melengkung ke atas' }
+            ],
+            pathway: ['Otot Diafragma', 'Rongga Dada Mengembang', 'Tekanan Turun', 'Udara Masuk'],
+            funfact: 'Cegukan terjadi ketika diafragma mengalami kontraksi involunter secara tiba-tiba yang diikuti menutupnya glotis.'
+          },
+          {
+            id: 'ribcage',
+            name: 'Sangkar Tulang Rusuk',
+            shortName: 'Tulang Rusuk',
+            kicker: 'PELINDUNG RONGGA DADA',
+            tagline: 'Melindungi paru-paru & jantung serta ikut terangkat saat napas',
+            desc: 'Susunan tulang rusuk dan tulang dada yang melindungi paru-paru dan jantung dari benturan, sekaligus terangkat keluar saat inspirasi bersama otot antar-tulang rusuk.',
+            camPos: [1.8, 1.3, 5.6],
+            camTarget: [0, 1.0, 0],
+            pinPos: [-1.15, 1.2, 0.85],
+            facts: [
+              { label: 'Fungsi Utama', value: 'Perlindungan mekanis & ekspansi dada' },
+              { label: 'Saat Inspirasi', value: 'Terangkat ke atas & ke arah depan' }
+            ],
+            pathway: ['Otot Antar-Tulang Rusuk', 'Tulang Rusuk Terangkat', 'Volume Dada Naik'],
+            funfact: 'Tulang rusuk manusia terbagi menjadi rusuk sejati, rusuk palsu, dan rusuk melayang.'
+          }
+        ],
+        quiz: [
+          {
+            q: 'Struktur manakah yang menjadi tempat utama terjadinya difusi oksigen ($	ext{O}_2$) ke darah dan karbon dioksida ($	ext{CO}_2$) keluar?',
+            options: ['Trakea', 'Bronkus', 'Alveolus', 'Diafragma'],
+            ans: 2,
+            exp: 'Alveolus berupa gelembung udara berdinding tipis yang dikelilingi kapiler darah sehingga difusi $	ext{O}_2$ dan $	ext{CO}_2$ terjadi.'
+          },
+          {
+            q: 'Apa yang terjadi pada diafragma saat proses inspirasi (menarik napas) normal?',
+            options: ['Relaksasi dan melengkung tinggi', 'Berkontraksi dan mendatar/turun', 'Menutup saluran bronkus', 'Menyempitkan rongga dada'],
+            ans: 1,
+            exp: 'Saat inspirasi, diafragma berkontraksi dan mendatar sehingga volume rongga dada membesar dan udara terhirup.'
+          },
+          {
+            q: 'Mengapa trakea memiliki cincin tulang rawan berbentuk huruf C?',
+            options: ['Agar mudah melipat saat tidur', 'Agar saluran udara tidak mudah mengempis', 'Untuk memompa darah ke paru-paru', 'Untuk mengubah $	ext{O}_2$ menjadi glukosa'],
+            ans: 1,
+            exp: 'Cincin tulang rawan menjaga trakea tetap terbuka dan kokoh menahan perubahan tekanan udara.'
+          },
+          {
+            q: 'Perbedaan jumlah lobus pada paru-paru manusia yang tepat adalah...',
+            options: ['Kanan 2 lobus, kiri 3 lobus', 'Kanan 3 lobus, kiri 2 lobus', 'Kanan 1 lobus, kiri 1 lobus', 'Kanan 4 lobus, kiri 2 lobus'],
+            ans: 1,
+            exp: 'Paru-paru kanan terdiri atas 3 lobus, sedangkan paru-paru kiri terdiri atas 2 lobus karena memberi ruang bagi jantung.'
+          },
+          {
+            q: 'Saat menghembuskan napas (ekspirasi), kondisi udara di dalam paru-paru dibandingkan udara luar adalah...',
+            options: ['Tekanan lebih tinggi daripada udara luar', 'Tekanan selalu nol mutlak', 'Tidak ada pertukaran gas sama sekali', 'Oksigen meningkat menjadi 100%'],
+            ans: 0,
+            exp: 'Ketika rongga dada mengecil, tekanan udara di dalam paru meningkat lebih tinggi dari udara luar sehingga udara terdorong keluar.'
+          }
+        ]
+      },
+
+      jantung: {
+        id: 'jantung',
+        tag: 'MODUL 02',
+        title: 'Jantung & Peredaran Darah',
+        subtitle: 'IPA Kelas 8 · 4 Ruang Jantung, Aorta & Sirkulasi Darah',
+        simLabel: 'Denyut Jantung',
+        simOptions: [
+          { label: 'Istirahat', speed: 0.7, badge: '~60 bpm' },
+          { label: 'Normal', speed: 1.0, badge: '~72 bpm' },
+          { label: 'Aktif', speed: 1.8, badge: '~125 bpm' },
+          { label: 'Jeda', speed: 0.0, badge: 'Dijeda' }
+        ],
+        defaultSimIndex: 1,
+        parts: [
+          {
+            id: 'heart_all',
+            name: 'Jantung (4 Ruang Utama)',
+            shortName: 'Jantung',
+            kicker: 'POMPA SIRKULASI GANDA',
+            tagline: 'Memompa darah ke seluruh tubuh dan paru-paru',
+            desc: 'Organ berotot lurik jantung (miokardium) yang terletak agak miring ke kiri di rongga dada. Terdiri atas serambi kanan, serambi kiri, bilik kanan, dan bilik kiri.',
+            camPos: [0, 1.1, 5.6],
+            camTarget: [0, 0.9, 0],
+            pinPos: [0, 1.0, 1.15],
+            facts: [
+              { label: 'Jumlah Ruang', value: '2 atrium (serambi) & 2 ventrikel (bilik)' },
+              { label: 'Sistem Peredaran', value: 'Peredaran darah ganda & tertutup' }
+            ],
+            pathway: ['Serambi Kanan', 'Bilik Kanan', 'Paru-paru', 'Serambi Kiri', 'Bilik Kiri', 'Seluruh Tubuh'],
+            funfact: 'Otot bilik kiri lebih tebal karena harus memompa darah beroksigen ke seluruh tubuh hingga ujung kaki.'
+          },
+          {
+            id: 'aorta',
+            name: 'Aorta (Pembuluh Nadi Utama)',
+            shortName: 'Aorta',
+            kicker: 'ARTERI TERBESAR TUBUH',
+            tagline: 'Membawa darah kaya oksigen dari bilik kiri ke tubuh',
+            desc: 'Pembuluh darah arteri terbesar yang keluar dari ventrikel kiri dan melengkung ke atas sebelum bercabang menuju kepala, lengan, dan organ tubuh bagian bawah.',
+            camPos: [0.7, 2.0, 4.4],
+            camTarget: [0.1, 1.75, 0],
+            pinPos: [0.15, 1.85, 0.65],
+            facts: [
+              { label: 'Asal', value: 'Bilik kiri (ventrikel sinistra)' },
+              { label: 'Kandungan Darah', value: 'Kaya oksigen ($	ext{O}_2$)' }
+            ],
+            pathway: ['Bilik Kiri', 'Katup Aorta', 'Lengkungan Aorta', 'Arteri Sistemik'],
+            funfact: 'Dinding aorta sangat elastis untuk meredam tekanan tinggi saat jantung memompa (sistol).'
+          },
+          {
+            id: 'right_side',
+            name: 'Sisi Kanan (Darah Minim $	ext{O}_2$)',
+            shortName: 'Sisi Kanan',
+            kicker: 'MENUJU PARU-PARU',
+            tagline: 'Menerima darah dari tubuh dan mengirimnya ke paru-paru',
+            desc: 'Serambi kanan menerima darah kaya $	ext{CO}_2$ dari vena kava, lalu mengalirkannya ke bilik kanan untuk dipompa ke paru-paru melalui arteri pulmonalis.',
+            camPos: [-1.8, 1.1, 4.7],
+            camTarget: [-0.6, 0.9, 0],
+            pinPos: [-0.75, 0.95, 0.9],
+            facts: [
+              { label: 'Kandungan Gas', value: 'Kaya karbon dioksida ($	ext{CO}_2$)' },
+              { label: 'Tujuan Pompa', value: 'Paru-paru (sirkulasi pulmonal)' }
+            ],
+            pathway: ['Vena Kava', 'Serambi Kanan', 'Bilik Kanan', 'Arteri Pulmonalis'],
+            funfact: 'Arteri pulmonalis adalah contoh arteri yang membawa darah kaya karbon dioksida.'
+          },
+          {
+            id: 'left_side',
+            name: 'Sisi Kiri (Darah Kaya $	ext{O}_2$)',
+            shortName: 'Sisi Kiri',
+            kicker: 'MENUJU SELURUH TUBUH',
+            tagline: 'Menerima darah segar dari paru-paru untuk diedarkan',
+            desc: 'Serambi kiri menerima darah kaya oksigen dari vena pulmonalis, kemudian bilik kiri memompanya ke seluruh tubuh melalui aorta.',
+            camPos: [1.8, 1.1, 4.7],
+            camTarget: [0.6, 0.9, 0],
+            pinPos: [0.75, 0.85, 0.9],
+            facts: [
+              { label: 'Kandungan Gas', value: 'Kaya oksigen ($	ext{O}_2$)' },
+              { label: 'Tujuan Pompa', value: 'Seluruh tubuh (sirkulasi sistemik)' }
+            ],
+            pathway: ['Vena Pulmonalis', 'Serambi Kiri', 'Bilik Kiri', 'Aorta'],
+            funfact: 'Darah kaya oksigen berwarna merah cerah karena berikatan dengan hemoglobin.'
+          }
+        ],
+        quiz: [
+          {
+            q: 'Ruang jantung yang memompa darah kaya oksigen ke seluruh tubuh melalui aorta adalah...',
+            options: ['Serambi kanan', 'Bilik kanan', 'Serambi kiri', 'Bilik kiri'],
+            ans: 3,
+            exp: 'Bilik kiri memompa darah beroksigen tinggi ke aorta untuk diedarkan ke seluruh jaringan tubuh.'
+          },
+          {
+            q: 'Pembuluh darah yang membawa darah dari bilik kanan menuju paru-paru disebut...',
+            options: ['Aorta', 'Arteri pulmonalis', 'Vena pulmonalis', 'Kapiler ginjal'],
+            ans: 1,
+            exp: 'Arteri pulmonalis membawa darah kaya $	ext{CO}_2$ dari bilik kanan ke paru-paru.'
+          },
+          {
+            q: 'Urutan peredaran darah kecil yang tepat adalah...',
+            options: [
+              'Bilik kiri → tubuh → serambi kanan',
+              'Bilik kanan → paru-paru → serambi kiri',
+              'Serambi kiri → bilik kiri → paru-paru',
+              'Paru-paru → bilik kanan → aorta'
+            ],
+            ans: 1,
+            exp: 'Peredaran darah kecil mengalir dari bilik kanan ke paru-paru lalu kembali ke serambi kiri.'
+          },
+          {
+            q: 'Mengapa dinding bilik kiri lebih tebal daripada dinding serambi?',
+            options: ['Karena hanya menampung udara', 'Karena memompa darah ke seluruh tubuh dengan tekanan lebih besar', 'Karena tidak memiliki katup', 'Karena berada di luar rongga dada'],
+            ans: 1,
+            exp: 'Bilik kiri memerlukan otot yang lebih tebal untuk mendorong darah ke seluruh sirkulasi sistemik.'
+          },
+          {
+            q: 'Vena pulmonalis mengalirkan darah yang kaya akan...',
+            options: ['Karbon dioksida saja', 'Oksigen dari paru-paru ke serambi kiri', 'Sisa metabolisme ginjal', 'Empedu dari hati'],
+            ans: 1,
+            exp: 'Vena pulmonalis membawa darah kaya oksigen dari paru-paru menuju serambi kiri jantung.'
+          }
+        ]
+      },
+
+      molekul: {
+        id: 'molekul',
+        tag: 'MODUL 03',
+        title: 'Struktur Atom & Molekul Air ($	ext{H}_2	ext{O}$)',
+        subtitle: 'IPA Kelas 8 · Geometri VSEPR $104,5^\circ$, Ikatan & Orbital',
+        simLabel: 'Kecepatan Orbital',
+        simOptions: [
+          { label: 'Lambat', speed: 0.5, badge: '0.5x' },
+          { label: 'Normal', speed: 1.0, badge: '1.0x' },
+          { label: 'Cepat', speed: 2.0, badge: '2.0x' },
+          { label: 'Beku', speed: 0.0, badge: '0.0x' }
+        ],
+        defaultSimIndex: 1,
+        parts: [
+          {
+            id: 'h2o_all',
+            name: 'Molekul Air ($	ext{H}_2	ext{O}$) VSEPR',
+            shortName: 'Molekul $	ext{H}_2	ext{O}$',
+            kicker: 'GEOMETRI TEKUK (BENT)',
+            tagline: 'Sudut ikatan $	ext{H–O–H}$ sekitar $104,5^\circ$ bersifat polar',
+            desc: 'Satu atom oksigen berikatan kovalen dengan dua atom hidrogen. Tolakan dua pasangan elektron bebas pada oksigen membuat bentuk molekul menyudut ($104,5^\circ$) sehingga molekul air bersifat polar.',
+            camPos: [0, 1.2, 5.5],
+            camTarget: [0, 0, 0],
+            pinPos: [0, 0.25, 0.9],
+            facts: [
+              { label: 'Sudut Ikatan', value: '$pprox 104,5^\circ$ (bentuk V / bengkok)' },
+              { label: 'Sifat Molekul', value: 'Polar ($\delta^-$ di $	ext{O}$, $\delta^+$ di $	ext{H}$)' }
+            ],
+            pathway: ['Atom Oksigen (Pusat)', '2 Ikatan Kovalen Tunggal', '2 Pasangan Elektron Bebas', 'Molekul $	ext{H}_2	ext{O}$ Polar'],
+            funfact: 'Kepolaran air memungkinkan terbentuknya ikatan hidrogen antar-molekul yang membuat air memiliki titik didih tinggi dan tegangan permukaan kuat.'
+          },
+          {
+            id: 'oxygen_atom',
+            name: 'Atom Oksigen ($	ext{O}$) & Lone Pairs',
+            shortName: 'Atom Oksigen',
+            kicker: 'PUSAT MOLEKUL',
+            tagline: 'Memiliki 6 elektron valensi & 2 pasangan elektron bebas',
+            desc: 'Atom oksigen berada di pusat molekul air. Empat elektron valensinya membentuk dua pasangan elektron bebas (lone pairs) yang memberi tolakan lebih kuat pada pasangan elektron ikatan.',
+            camPos: [0, 1.6, 3.8],
+            camTarget: [0, 0, 0],
+            pinPos: [0, 0.75, 0.5],
+            facts: [
+              { label: 'Elektron Valensi', value: '6 elektron (2 berikatan, 2 pasangan bebas)' },
+              { label: 'Muatan Parsial', value: 'Parsial negatif ($\delta^-$)' }
+            ],
+            pathway: ['Inti Oksigen', 'Kulit Valensi (6 $	ext{e}^-$)', 'Tolakan Pasangan Bebas'],
+            funfact: 'Tolakan pasangan elektron bebas lebih besar daripada tolakan pasangan elektron ikatan (LP–LP > LP–BP > BP–BP).'
+          },
+          {
+            id: 'hydrogen_atoms',
+            name: 'Dua Atom Hidrogen ($	ext{H}$) & Ikatan',
+            shortName: 'Atom Hidrogen',
+            kicker: 'IKATAN KOVALEN $	ext{O–H}$',
+            tagline: 'Berbagi pasangan elektron untuk kestabilan duplet',
+            desc: 'Dua atom hidrogen masing-masing berbagi satu elektron dengan atom oksigen melalui ikatan kovalen tunggal, sehingga atom $	ext{H}$ mencapai konfigurasi stabil seperti helium.',
+            camPos: [1.8, 0.8, 4.1],
+            camTarget: [0.8, -0.4, 0],
+            pinPos: [1.15, -0.55, 0.5],
+            facts: [
+              { label: 'Jenis Ikatan', value: '2 ikatan kovalen tunggal ($	ext{O–H}$)' },
+              { label: 'Muatan Parsial', value: 'Parsial positif ($\delta^+$)' }
+            ],
+            pathway: ['Atom $	ext{H}_1$ & $	ext{H}_2$', 'Pasangan Elektron Bersama', 'Ikatan Kovalen $	ext{O–H}$'],
+            funfact: 'Perbedaan keelektronegatifan antara oksigen dan hidrogen membuat pasangan elektron lebih tertarik ke arah oksigen.'
+          },
+          {
+            id: 'electron_cloud',
+            name: 'Awan Elektron & Elektron Mengorbit',
+            shortName: 'Awan Elektron',
+            kicker: 'DISTRIBUSI KERAPATAN ELEKTRON',
+            tagline: 'Menunjukkan daerah kebolehjadian elektron di sekitar molekul',
+            desc: 'Elektron tidak bergerak pada lintasan kaku semata, melainkan memiliki daerah probabilitas (awan elektron) yang lebih padat di sekitar oksigen.',
+            camPos: [-1.7, 1.3, 4.4],
+            camTarget: [0, 0, 0],
+            pinPos: [-0.95, 0.55, 0.6],
+            facts: [
+              { label: 'Kerapatan Tertinggi', value: 'Di sekitar atom oksigen elektronegatif' },
+              { label: 'Aktifkan X-Ray', value: 'Memperjelas inti & lintasan elektron' }
+            ],
+            pathway: ['Orbital Atom', 'Tumpang Tindih Orbital', 'Awan Kerapatan Elektron'],
+            funfact: 'Sifat polar molekul air menjadikannya pelarut yang sangat baik bagi banyak senyawa ionik dan polar.'
+          }
+        ],
+        quiz: [
+          {
+            q: 'Berapakah perkiraan sudut ikatan $	ext{H–O–H}$ pada molekul air ($	ext{H}_2	ext{O}$) menurut teori VSEPR?',
+            options: ['$180^\circ$', '$120^\circ$', '$104,5^\circ$', '$90^\circ$'],
+            ans: 2,
+            exp: 'Molekul $	ext{H}_2	ext{O}$ memiliki bentuk bengkok/tekuk dengan sudut ikatan sekitar $104,5^\circ$ akibat tolakan dua pasangan elektron bebas.'
+          },
+          {
+            q: 'Mengapa molekul air ($	ext{H}_2	ext{O}$) bersifat polar?',
+            options: [
+              'Bentuknya linear simetris sempurna',
+              'Oksigen lebih elektronegatif dan geometri molekulnya menyudut',
+              'Tidak memiliki atom hidrogen',
+              'Semua atomnya bermuatan negatif penuh'
+            ],
+            ans: 1,
+            exp: 'Geometri bengkok dan perbedaan keelektronegatifan antara $	ext{O}$ dan $	ext{H}$ menghasilkan dipol listrik bersih.'
+          },
+          {
+            q: 'Berapa jumlah pasangan elektron bebas (lone pairs) pada atom oksigen dalam satu molekul $	ext{H}_2	ext{O}$?',
+            options: ['0 pasang', '1 pasang', '2 pasang', '3 pasang'],
+            ans: 2,
+            exp: 'Atom oksigen memiliki 6 elektron valensi; 2 digunakan berikatan dengan $	ext{H}$ dan tersisa 4 elektron = 2 pasangan bebas.'
+          },
+          {
+            q: 'Jenis ikatan yang menghubungkan atom oksigen dan hidrogen pada $	ext{H}_2	ext{O}$ adalah...',
+            options: ['Ikatan ionik murni', 'Ikatan kovalen', 'Ikatan logam', 'Ikatan van der Waals saja'],
+            ans: 1,
+            exp: 'Atom oksigen dan hidrogen berbagi pasangan elektron melalui ikatan kovalen.'
+          },
+          {
+            q: 'Pada molekul air, daerah yang cenderung memiliki muatan parsial negatif ($\delta^-$) berada di sekitar...',
+            options: ['Atom oksigen', 'Kedua atom hidrogen', 'Di luar awan elektron saja', 'Tidak ada bagian yang bermuatan parsial'],
+            ans: 0,
+            exp: 'Oksigen menarik pasangan elektron lebih kuat sehingga memiliki muatan parsial negatif ($\delta^-$).'
+          }
+        ]
+      },
+
+      bumi: {
+        id: 'bumi',
+        tag: 'MODUL 04',
+        title: 'Struktur Lapisan Bumi',
+        subtitle: 'IPA Kelas 8 · Kerak, Mantel, Inti Luar & Inti Dalam',
+        simLabel: 'Rotasi Bumi',
+        simOptions: [
+          { label: 'Lambat', speed: 0.45, badge: '0.45x' },
+          { label: 'Normal', speed: 1.0, badge: '1.0x' },
+          { label: 'Cepat', speed: 2.0, badge: '2.0x' },
+          { label: 'Diam', speed: 0.0, badge: '0.0x' }
+        ],
+        defaultSimIndex: 1,
+        parts: [
+          {
+            id: 'earth_all',
+            name: 'Irisan Penampang Lapisan Bumi',
+            shortName: 'Lapisan Bumi',
+            kicker: 'STRUKTUR GEOLOGI 3D',
+            tagline: 'Dari kerak benua & samudra hingga inti dalam bersuhu tinggi',
+            desc: 'Model irisan kuadran memperlihatkan lapisan konsentris Bumi: kerak terluar tipis, mantel batuan panas, inti luar cair, serta inti dalam logam padat.',
+            camPos: [2.5, 1.8, 5.2],
+            camTarget: [0, 0, 0],
+            pinPos: [1.1, 0.85, 1.1],
+            facts: [
+              { label: 'Jari-jari Rata-rata', value: '$pprox 6.371	ext{ km}$' },
+              { label: 'Lapisan Utama', value: 'Kerak, Mantel, Inti Luar, Inti Dalam' }
+            ],
+            pathway: ['Atmosfer & Kerak Bumi', 'Mantel Bumi', 'Inti Luar (Cair)', 'Inti Dalam (Padat)'],
+            funfact: 'Kerak bumi sangat tipis jika dibandingkan ukuran Bumi—ibarat kulit apel yang tipis.'
+          },
+          {
+            id: 'crust',
+            name: 'Kerak Bumi & Atmosfer Tipis',
+            shortName: 'Kerak Bumi',
+            kicker: 'LAPISAN TERLUAR (0–70 KM)',
+            tagline: 'Tempat kehidupan, benua, dan dasar samudra berada',
+            desc: 'Terdiri atas kerak benua (lebih tebal, kaya silika & aluminium) dan kerak samudra (lebih tipis & padat, kaya silika & magnesium), terbagi menjadi lempeng tektonik.',
+            camPos: [2.2, 1.5, 3.9],
+            camTarget: [0.9, 0.7, 0.9],
+            pinPos: [1.15, 0.95, 1.15],
+            facts: [
+              { label: 'Ketebalan', value: '$pprox 5	ext{–}70	ext{ km}$' },
+              { label: 'Jenis Kerak', value: 'Kerak benua & kerak samudra' }
+            ],
+            pathway: ['Lempeng Tektonik', 'Kerak Samudra / Benua', 'Batas Moho (Mohorovičić)'],
+            funfact: 'Pergerakan lempeng tektonik di atas astenosfer memicu gempa bumi, gunung api, dan pembentukan pegunungan.'
+          },
+          {
+            id: 'mantle',
+            name: 'Mantel Bumi (Pijar & Konveksi)',
+            shortName: 'Mantel Bumi',
+            kicker: 'LAPISAN TERTEBAL (± 2.900 KM)',
+            tagline: 'Batuan silikat panas dengan arus konveksi lambat',
+            desc: 'Menempati sekitar 84% volume Bumi. Suhu dan tekanannya meningkat ke arah dalam, menghasilkan aliran konveksi lambat yang menggerakkan lempeng di atasnya.',
+            camPos: [1.8, 1.2, 3.5],
+            camTarget: [0.65, 0.45, 0.65],
+            pinPos: [0.85, 0.55, 0.85],
+            facts: [
+              { label: 'Kedalaman', value: 'Hingga $pprox 2.900	ext{ km}$' },
+              { label: 'Suhu', value: '$pprox 500^\circ	ext{C} 	ext{ hingga } >3.000^\circ	ext{C}$' }
+            ],
+            pathway: ['Litosfer Bawah', 'Astenosfer', 'Mantel Bawah', 'Batas Gutenberg'],
+            funfact: 'Magma yang keluar saat letusan gunung berapi berasal dari kantong batuan leleh di bagian atas mantel/kerak.'
+          },
+          {
+            id: 'outer_core',
+            name: 'Inti Luar (Cair)',
+            shortName: 'Inti Luar',
+            kicker: 'LAPISAN LOGAM CAIR',
+            tagline: 'Lelehan besi & nikel yang memicu medan magnet Bumi',
+            desc: 'Berada pada kedalaman sekitar 2.900–5.150 km dalam wujud cair. Aliran konveksi logam cair konduktif ini berperan penting dalam efek dinamo medan magnet Bumi.',
+            camPos: [1.4, 0.9, 3.1],
+            camTarget: [0.4, 0.25, 0.4],
+            pinPos: [0.52, 0.32, 0.52],
+            facts: [
+              { label: 'Wujud', value: 'Cair (besi & nikel)' },
+              { label: 'Kedalaman', value: '$pprox 2.900	ext{–}5.150	ext{ km}$' }
+            ],
+            pathway: ['Batas Gutenberg', 'Inti Luar Cair', 'Batas Lehmann'],
+            funfact: 'Gelombang gempa sekunder (S-wave) tidak dapat merambat lurus menembus inti luar cair.'
+          },
+          {
+            id: 'inner_core',
+            name: 'Inti Dalam (Padat)',
+            shortName: 'Inti Dalam',
+            kicker: 'PUSAT BUMI (5.150–6.371 KM)',
+            tagline: 'Bola besi-nikel padat akibat tekanan sangat ekstrem',
+            desc: 'Meskipun suhunya sangat tinggi (mencapai $pprox 5.000^\circ	ext{C}$ lebih), tekanan hidrostatik luar biasa besar mempertahankan inti dalam tetap dalam wujud padat.',
+            camPos: [1.1, 0.75, 2.6],
+            camTarget: [0.15, 0.1, 0.15],
+            pinPos: [0.22, 0.12, 0.22],
+            facts: [
+              { label: 'Wujud', value: 'Padat (besi & nikel)' },
+              { label: 'Suhu', value: 'Diperkirakan $pprox 5.000^\circ	ext{C}+$' }
+            ],
+            pathway: ['Inti Luar Cair', 'Batas Lehmann', 'Pusat Inti Dalam'],
+            funfact: 'Tekanan di pusat Bumi mencapai lebih dari 3,5 juta kali tekanan atmosfer di permukaan laut.'
+          }
+        ],
+        quiz: [
+          {
+            q: 'Lapisan Bumi manakah yang berada dalam wujud cair dan berperan dalam pembentukan medan magnet Bumi?',
+            options: ['Kerak bumi', 'Mantel atas', 'Inti luar', 'Inti dalam'],
+            ans: 2,
+            exp: 'Inti luar tersusun atas besi dan nikel cair yang bergerak dan mendukung pembangkitan medan magnet Bumi.'
+          },
+          {
+            q: 'Mengapa inti dalam Bumi tetap berwujud padat padahal suhunya sangat tinggi?',
+            options: ['Karena suhunya di bawah $0^\circ	ext{C}$', 'Karena tekanan di pusat Bumi sangat besar', 'Karena seluruhnya terbuat dari air beku', 'Karena tidak memiliki unsur besi'],
+            ans: 1,
+            exp: 'Tekanan yang sangat besar di pusat Bumi menaikkan titik leleh logam sehingga inti dalam tetap padat.'
+          },
+          {
+            q: 'Lapisan terluar tempat tinggal makhluk hidup dan berada di atas mantel adalah...',
+            options: ['Inti dalam', 'Inti luar', 'Kerak bumi', 'Mesosfer inti'],
+            ans: 2,
+            exp: 'Kerak bumi adalah lapisan terluar yang menjadi tempat daratan/benua dan dasar lautan.'
+          },
+          {
+            q: 'Lapisan manakah yang paling tebal dan memiliki arus konveksi yang menggerakkan lempeng tektonik?',
+            options: ['Kerak samudra', 'Mantel bumi', 'Kerak benua', 'Atmosfer bawah'],
+            ans: 1,
+            exp: 'Mantel bumi merupakan lapisan tertebal dengan batuan panas yang mengalami konveksi.'
+          },
+          {
+            q: 'Urutan lapisan dari permukaan ke pusat Bumi yang benar adalah...',
+            options: [
+              'Kerak → Mantel → Inti Luar → Inti Dalam',
+              'Inti Dalam → Inti Luar → Mantel → Kerak',
+              'Mantel → Kerak → Inti Dalam → Inti Luar',
+              'Kerak → Inti Luar → Mantel → Inti Dalam'
+            ],
+            ans: 0,
+            exp: 'Dari luar ke dalam, susunannya adalah Kerak Bumi, Mantel Bumi, Inti Luar, dan Inti Dalam.'
+          }
+        ]
+      }
+    };
+
+    // =========================================================
+    // STATE
+    // =========================================================
+    const state = {
+      view: 'landing',
+      heroModel: 'lungs',
+      moduleId: 'pernapasan',
+      partIndex: 0,
+      xray: false,
+      showPins: true,
+      simIndex: 1,
+      simTime: 0,
+      camAnim: null
+    };
+
+    // =========================================================
+    // TEXT FORMATTER (SIMPLE $	ext{...}$ & SUBSCRIPTS)
+    // =========================================================
+    function formatScienceText(str = '') {
+      return str
+        .replace(/\text\{([^}]+)\}/g, '$1')
+        .replace(/\$([^$]+)\$/g, (_, inner) => {
+          return inner
+            .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+            .replace(/_([A-Za-z0-9]+)/g, '<sub>$1</sub>')
+            .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+            .replace(/\^([A-Za-z0-9+-]+)/g, '<sup>$1</sup>');
+        });
+    }
+
+    // =========================================================
+    // PROCEDURAL TEXTURES & HIGH-DETAIL 3D MODELS
+    // =========================================================
+    function createLungTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f48fb1';
+      ctx.fillRect(0, 0, 256, 256);
+
+      // Subtle capillary network
+      ctx.strokeStyle = 'rgba(190, 45, 85, 0.24)';
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < 42; i++) {
+        ctx.beginPath();
+        let x = Math.random() * 256;
+        let y = Math.random() * 256;
+        ctx.moveTo(x, y);
+        for (let s = 0; s < 5; s++) {
+          x += (Math.random() - 0.5) * 42;
+          y += (Math.random() - 0.5) * 42;
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    function createEarthCrustTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      // Ocean base
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(0, 0, 512, 256);
+
+      // Continents
+      ctx.fillStyle = '#22c55e';
+      const blobs = [
+        [95, 80, 48, 34], [115, 130, 34, 48],
+        [255, 72, 42, 30], [275, 135, 44, 52],
+        [375, 95, 58, 38], [415, 165, 34, 26]
+      ];
+      blobs.forEach(([cx, cy, rx, ry]) => {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0.25, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Polar ice
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 512, 14);
+      ctx.fillRect(0, 242, 512, 14);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const lungTex = createLungTexture();
+    const earthCrustTex = createEarthCrustTexture();
+
+    function createSculptedLobeGeometry(isRight, lobeType) {
+      // lobeType: 'upper', 'middle', 'lower'
+      const geom = new THREE.SphereGeometry(1, 36, 28);
+      const pos = geom.attributes.position;
+      const v = new THREE.Vector3();
+      const dirX = isRight ? 1 : -1;
+
+      for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i);
+
+        // Taper apex (top) and broaden base (bottom)
+        const yNorm = (v.y + 1) * 0.5; // 0 bottom, 1 top
+        const widthScale = 0.55 + (1 - yNorm) * 0.55;
+        v.x *= widthScale * 0.85;
+        v.z *= widthScale * 0.72;
+        v.y *= 1.18;
+
+        // Flatten medial (inner) face slightly facing trachea/heart
+        if (dirX > 0 && v.x < -0.15) {
+          v.x = -0.15 + (v.x + 0.15) * 0.35;
+        }
+        if (dirX < 0 && v.x > 0.15) {
+          v.x = 0.15 + (v.x - 0.15) * 0.35;
+        }
+
+        // Cardiac notch on left lung medial lower region
+        if (!isRight && v.x > 0.05 && v.y < 0.25 && v.y > -0.65 && v.z > -0.2) {
+          v.x -= 0.26 * Math.cos(((v.y + 0.2) / 0.45) * (Math.PI * 0.5));
+        }
+
+        // Subtle lobe sculpt offset
+        if (lobeType === 'upper') {
+          v.y += 0.35;
+          v.x += dirX * 0.06;
+        } else if (lobeType === 'middle') {
+          v.y -= 0.08;
+          v.x += dirX * 0.12;
+          v.z += 0.08;
+        } else if (lobeType === 'lower') {
+          v.y -= 0.45;
+          v.x += dirX * 0.08;
+        }
+
+        pos.setXYZ(i, v.x, v.y, v.z);
+      }
+      geom.computeVertexNormals();
+      return geom;
+    }
+
+    function buildLungsModel(options = { compact: false }) {
+      const root = new THREE.Group();
+      const s = options.compact ? 0.72 : 1.0;
+      root.scale.setScalar(s);
+
+      const lobeMat = new THREE.MeshPhysicalMaterial({
+        map: lungTex,
+        color: 0xfb7185,
+        roughness: 0.42,
+        metalness: 0.02,
+        clearcoat: 0.25,
+        transparent: true,
+        opacity: 0.86
+      });
+
+      const tracheaMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        roughness: 0.45,
+        metalness: 0.05
+      });
+
+      const airwayMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        roughness: 0.35
+      });
+
+      const bronchiolesMat = new THREE.MeshStandardMaterial({
+        color: 0x0ea5e9,
+        roughness: 0.4
+      });
+
+      const alveoliMat = new THREE.MeshStandardMaterial({
+        color: 0xfda4af,
+        roughness: 0.38
+      });
+
+      // Trachea tube + C-rings
+      const tracheaGroup = new THREE.Group();
+      const tracheaTube = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.15, 1.35, 24), tracheaMat);
+      tracheaTube.position.set(0, 2.25, 0);
+      tracheaGroup.add(tracheaTube);
+
+      for (let i = 0; i < 8; i++) {
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.165, 0.024, 10, 24, Math.PI * 1.45),
+          new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 })
+        );
+        ring.position.set(0, 1.72 + i * 0.145, 0);
+        ring.rotation.x = Math.PI * 0.5;
+        ring.rotation.z = Math.PI * 0.25;
+        tracheaGroup.add(ring);
+      }
+      root.add(tracheaGroup);
+
+      // Bronchi & Bronchioles
+      const treeGroup = new THREE.Group();
+      const bronchusR = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.085, 0.85, 16), airwayMat);
+      bronchusR.position.set(0.42, 1.38, 0.05);
+      bronchusR.rotation.z = -0.68;
+      treeGroup.add(bronchusR);
+
+      const bronchusL = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.085, 0.85, 16), airwayMat);
+      bronchusL.position.set(-0.42, 1.38, 0.05);
+      bronchusL.rotation.z = 0.68;
+      treeGroup.add(bronchusL);
+
+      // Alveoli clusters
+      const alveoliGroup = new THREE.Group();
+      const clusterCenters = [
+        [0.85, 1.35, 0.25], [1.05, 0.95, 0.35], [0.78, 0.45, 0.3],
+        [-0.85, 1.32, 0.25], [-1.02, 0.72, 0.32]
+      ];
+      clusterCenters.forEach(([cx, cy, cz]) => {
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 0.45, 10), bronchiolesMat);
+        branch.position.set(cx * 0.72, cy + 0.15, cz * 0.7);
+        branch.rotation.z = cx > 0 ? -0.55 : 0.55;
+        treeGroup.add(branch);
+
+        for (let b = 0; b < 6; b++) {
+          const ang = (b / 6) * Math.PI * 2;
+          const sac = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 12), alveoliMat);
+          sac.position.set(
+            cx + Math.cos(ang) * 0.14,
+            cy + Math.sin(ang) * 0.12,
+            cz + Math.cos(ang * 2) * 0.08
+          );
+          alveoliGroup.add(sac);
+        }
+      });
+      treeGroup.add(alveoliGroup);
+      root.add(treeGroup);
+
+      // Right Lung (3 lobes) & Left Lung (2 lobes)
+      const rightLungGroup = new THREE.Group();
+      const rUpper = new THREE.Mesh(createSculptedLobeGeometry(true, 'upper'), lobeMat.clone());
+      rUpper.scale.set(0.68, 0.55, 0.65);
+      rUpper.position.set(0.88, 1.38, 0.05);
+
+      const rMid = new THREE.Mesh(createSculptedLobeGeometry(true, 'middle'), lobeMat.clone());
+      rMid.scale.set(0.72, 0.48, 0.7);
+      rMid.position.set(0.95, 0.92, 0.1);
+
+      const rLower = new THREE.Mesh(createSculptedLobeGeometry(true, 'lower'), lobeMat.clone());
+      rLower.scale.set(0.76, 0.62, 0.74);
+      rLower.position.set(0.92, 0.42, 0.02);
+
+      rightLungGroup.add(rUpper, rMid, rLower);
+
+      const leftLungGroup = new THREE.Group();
+      const lUpper = new THREE.Mesh(createSculptedLobeGeometry(false, 'upper'), lobeMat.clone());
+      lUpper.scale.set(0.68, 0.62, 0.66);
+      lUpper.position.set(-0.9, 1.32, 0.05);
+
+      const lLower = new THREE.Mesh(createSculptedLobeGeometry(false, 'lower'), lobeMat.clone());
+      lLower.scale.set(0.74, 0.68, 0.72);
+      lLower.position.set(-0.92, 0.52, 0.02);
+
+      leftLungGroup.add(lUpper, lLower);
+      root.add(rightLungGroup, leftLungGroup);
+
+      // Dome Diaphragm
+      const diaphragmMat = new THREE.MeshStandardMaterial({
+        color: 0xe11d48,
+        roughness: 0.55,
+        side: THREE.DoubleSide
+      });
+      const diaphragm = new THREE.Mesh(new THREE.SphereGeometry(1.55, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.42), diaphragmMat);
+      diaphragm.scale.set(1.18, 0.34, 0.82);
+      diaphragm.position.set(0, -0.35, 0.05);
+      root.add(diaphragm);
+
+      // Rib Cage
+      const ribGroup = new THREE.Group();
+      const ribMat = new THREE.MeshStandardMaterial({
+        color: 0xf1f5f9,
+        roughness: 0.35,
+        transparent: true,
+        opacity: 0.75
+      });
+      for (let r = 0; r < 6; r++) {
+        const yPos = 1.62 - r * 0.27;
+        const radX = 1.35 + Math.sin((r / 5) * Math.PI) * 0.32;
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(radX, 0.042, 10, 28, Math.PI * 1.15), ribMat);
+        rib.position.set(0, yPos, 0.05);
+        rib.rotation.x = Math.PI * 0.46;
+        rib.rotation.z = -Math.PI * 0.075;
+        ribGroup.add(rib);
+      }
+      root.add(ribGroup);
+
+      // O2 (blue) & CO2 (amber/orange) gas particles
+      const particles = [];
+      const o2Mat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+      const co2Mat = new THREE.MeshBasicMaterial({ color: 0xf97316 });
+      for (let i = 0; i < 18; i++) {
+        const isO2 = i < 10;
+        const pMesh = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10), isO2 ? o2Mat : co2Mat);
+        pMesh.userData = { isO2, phase: i / 18, side: i % 2 === 0 ? 1 : -1 };
+        particles.push(pMesh);
+        root.add(pMesh);
+      }
+
+      return {
+        group: root,
+        update(time, breathPhase, xray) {
+          // breathPhase in [-1..1], +1 = inhale
+          const expand = 1 + breathPhase * 0.085;
+          rightLungGroup.scale.setScalar(expand);
+          leftLungGroup.scale.setScalar(expand);
+          alveoliGroup.scale.setScalar(1 + breathPhase * 0.14);
+          ribGroup.scale.set(1 + breathPhase * 0.055, 1, 1 + breathPhase * 0.06);
+
+          // Diaphragm contracts (moves down/flattens) on inhale
+          diaphragm.position.y = -0.35 - breathPhase * 0.14;
+          diaphragm.scale.y = 0.34 - breathPhase * 0.07;
+
+          const targetOpacity = xray ? 0.24 : 0.86;
+          [rUpper, rMid, rLower, lUpper, lLower].forEach((m) => {
+            m.material.opacity = targetOpacity;
+          });
+          ribMat.opacity = xray ? 0.22 : 0.72;
+
+          particles.forEach((p) => {
+            const t = ((time * 0.32 + p.userData.phase) % 1 + 1) % 1;
+            const side = p.userData.side;
+            if (p.userData.isO2) {
+              // Inhale path from top trachea down into lung lobe
+              const y = 2.6 - t * 1.9;
+              const x = side * Math.pow(t, 1.3) * 0.95;
+              const z = Math.sin(t * Math.PI) * 0.25;
+              p.position.set(x, y, z);
+            } else {
+              // Exhale CO2 path from lung outward/upward
+              const y = 0.75 + t * 1.85;
+              const x = side * (1 - t * 0.85) * 0.92;
+              const z = Math.cos(t * Math.PI * 0.5) * 0.2;
+              p.position.set(x, y, z);
+            }
+          });
+        }
+      };
+    }
+
+    function buildHeartModel(options = { compact: false }) {
+      const root = new THREE.Group();
+      if (options.compact) root.scale.setScalar(0.76);
+
+      const heartGroup = new THREE.Group();
+      heartGroup.position.set(0, 0.95, 0);
+
+      const rightMat = new THREE.MeshPhysicalMaterial({
+        color: 0x3b82f6,
+        roughness: 0.35,
+        clearcoat: 0.2,
+        transparent: true,
+        opacity: 0.88
+      });
+      const leftMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe11d48,
+        roughness: 0.32,
+        clearcoat: 0.25,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      // Right atrium & ventricle
+      const rAtrium = new THREE.Mesh(new THREE.SphereGeometry(0.56, 24, 24), rightMat.clone());
+      rAtrium.position.set(-0.48, 0.35, 0.12);
+      const rVentricle = new THREE.Mesh(new THREE.ConeGeometry(0.66, 1.25, 24), rightMat.clone());
+      rVentricle.rotation.z = Math.PI - 0.18;
+      rVentricle.position.set(-0.36, -0.35, 0.06);
+
+      // Left atrium & ventricle
+      const lAtrium = new THREE.Mesh(new THREE.SphereGeometry(0.54, 24, 24), leftMat.clone());
+      lAtrium.position.set(0.46, 0.38, 0.12);
+      const lVentricle = new THREE.Mesh(new THREE.ConeGeometry(0.72, 1.38, 24), leftMat.clone());
+      lVentricle.rotation.z = Math.PI + 0.22;
+      lVentricle.position.set(0.32, -0.4, 0.06);
+
+      // Aorta arch
+      const aortaCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.2, 0.45, 0.05),
+        new THREE.Vector3(0.15, 1.15, 0.05),
+        new THREE.Vector3(-0.25, 1.38, -0.05),
+        new THREE.Vector3(-0.55, 0.95, -0.25)
+      ]);
+      const aortaMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(aortaCurve, 28, 0.22, 16, false),
+        new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.35 })
+      );
+
+      // Pulmonary artery
+      const pulmCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.25, 0.42, 0.22),
+        new THREE.Vector3(-0.1, 0.95, 0.26),
+        new THREE.Vector3(0.65, 1.05, 0.12)
+      ]);
+      const pulmMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(pulmCurve, 24, 0.16, 14, false),
+        new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 })
+      );
+
+      heartGroup.add(rAtrium, rVentricle, lAtrium, lVentricle, aortaMesh, pulmMesh);
+      root.add(heartGroup);
+
+      const chambers = [rAtrium, rVentricle, lAtrium, lVentricle];
+      return {
+        group: root,
+        update(time, pulse, xray) {
+          const beat = 1 + Math.max(0, Math.sin(time * 5.2)) * 0.08 * pulse;
+          heartGroup.scale.setScalar(beat);
+          chambers.forEach((c) => {
+            c.material.opacity = xray ? 0.28 : 0.9;
+          });
+        }
+      };
+    }
+
+    function buildWaterMoleculeModel(options = { compact: false }) {
+      const root = new THREE.Group();
+      const s = options.compact ? 0.78 : 1.0;
+      root.scale.setScalar(s);
+
+      const molGroup = new THREE.Group();
+      root.add(molGroup);
+
+      // Central Oxygen atom
+      const oMat = new THREE.MeshPhysicalMaterial({
+        color: 0xdc2626,
+        roughness: 0.22,
+        metalness: 0.08,
+        clearcoat: 0.65
+      });
+      const oxygen = new THREE.Mesh(new THREE.SphereGeometry(0.76, 36, 36), oMat);
+      molGroup.add(oxygen);
+
+      // VSEPR bent angle = 104.5 deg -> half angle = 52.25 deg from -Y axis
+      const halfAngle = THREE.MathUtils.degToRad(52.25);
+      const bondLen = 1.55;
+
+      const hMat = new THREE.MeshPhysicalMaterial({
+        color: 0xe0f2fe,
+        roughness: 0.25,
+        metalness: 0.05,
+        clearcoat: 0.5
+      });
+
+      const bondMat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        roughness: 0.35,
+        metalness: 0.2
+      });
+
+      [-1, 1].forEach((dir) => {
+        const hx = dir * Math.sin(halfAngle) * bondLen;
+        const hy = -Math.cos(halfAngle) * bondLen;
+
+        const hAtom = new THREE.Mesh(new THREE.SphereGeometry(0.45, 28, 28), hMat);
+        hAtom.position.set(hx, hy, 0);
+        molGroup.add(hAtom);
+
+        const bond = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, bondLen, 16), bondMat);
+        bond.position.set(hx * 0.5, hy * 0.5, 0);
+        bond.rotation.z = -dir * halfAngle;
+        molGroup.add(bond);
+      });
+
+      // Two Lone Pair lobes above Oxygen
+      const lpMat = new THREE.MeshPhysicalMaterial({
+        color: 0x38bdf8,
+        roughness: 0.25,
+        transparent: true,
+        opacity: 0.52
+      });
+      [-1, 1].forEach((dir) => {
+        const lp = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 24), lpMat);
+        lp.scale.set(0.85, 1.35, 0.85);
+        lp.position.set(dir * 0.52, 0.78, 0.28 * dir);
+        molGroup.add(lp);
+      });
+
+      // Semi-transparent Electron Cloud
+      const cloudMat = new THREE.MeshPhysicalMaterial({
+        color: 0x7dd3fc,
+        transparent: true,
+        opacity: 0.16,
+        roughness: 0.1,
+        depthWrite: false
+      });
+      const cloud = new THREE.Mesh(new THREE.SphereGeometry(2.05, 32, 32), cloudMat);
+      cloud.scale.set(1.25, 0.95, 0.95);
+      molGroup.add(cloud);
+
+      // Orbiting Electrons
+      const electrons = [];
+      const elecMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+      for (let i = 0; i < 8; i++) {
+        const eMesh = new THREE.Mesh(new THREE.SphereGeometry(0.085, 14, 14), elecMat);
+        eMesh.userData = {
+          angle: (i / 8) * Math.PI * 2,
+          radius: 1.45 + (i % 2) * 0.35,
+          tiltX: (i % 3 - 1) * 0.65,
+          tiltZ: ((i + 1) % 3 - 1) * 0.55
+        };
+        electrons.push(eMesh);
+        molGroup.add(eMesh);
+      }
+
+      return {
+        group: root,
+        update(time, speed, xray) {
+          molGroup.rotation.y = time * 0.35 * speed;
+          cloud.material.opacity = xray ? 0.34 : 0.14;
+          lpMat.opacity = xray ? 0.78 : 0.48;
+
+          electrons.forEach((el) => {
+            const a = el.userData.angle + time * 1.9 * speed;
+            const r = el.userData.radius;
+            const x0 = Math.cos(a) * r;
+            const z0 = Math.sin(a) * r;
+            const y1 = z0 * Math.sin(el.userData.tiltX);
+            const z1 = z0 * Math.cos(el.userData.tiltX);
+            molGroup.add(el);
+            el.position.set(x0, y1, z1);
+          });
+        }
+      };
+    }
+
+    function buildEarthCutawayModel(options = { compact: false }) {
+      const root = new THREE.Group();
+      const s = options.compact ? 0.78 : 1.0;
+      root.scale.setScalar(s);
+
+      const earthGroup = new THREE.Group();
+      root.add(earthGroup);
+
+      // 90-degree front-right cutaway: phiStart = 0, phiLength = Math.PI * 1.5
+      const phiStart = 0;
+      const phiLength = Math.PI * 1.5;
+
+      // 1. Inner Core (solid hot iron-nickel)
+      const innerCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 32, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfef08a })
+      );
+
+      // 2. Outer Core (molten bright gold-orange)
+      const outerCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.95, 36, 36, phiStart, phiLength),
+        new THREE.MeshStandardMaterial({
+          color: 0xf59e0b,
+          emissive: 0xd97706,
+          emissiveIntensity: 0.45,
+          roughness: 0.3,
+          side: THREE.DoubleSide
+        })
+      );
+
+      // 3. Mantle (glowing magma silicate)
+      const mantle = new THREE.Mesh(
+        new THREE.SphereGeometry(1.56, 40, 40, phiStart, phiLength),
+        new THREE.MeshStandardMaterial({
+          color: 0xea580c,
+          emissive: 0x9a3412,
+          emissiveIntensity: 0.25,
+          roughness: 0.55,
+          side: THREE.DoubleSide
+        })
+      );
+
+      // 4. Crust (continents & ocean)
+      const crust = new THREE.Mesh(
+        new THREE.SphereGeometry(1.72, 40, 40, phiStart, phiLength),
+        new THREE.MeshStandardMaterial({
+          map: earthCrustTex,
+          roughness: 0.65,
+          side: THREE.DoubleSide
+        })
+      );
+
+      // 5. Thin Atmosphere shell
+      const atmosphere = new THREE.Mesh(
+        new THREE.SphereGeometry(1.82, 32, 32),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.14,
+          roughness: 0.1,
+          depthWrite: false
+        })
+      );
+
+      earthGroup.add(innerCore, outerCore, mantle, crust, atmosphere);
+
+      return {
+        group: root,
+        update(time, speed, xray) {
+          earthGroup.rotation.y = time * 0.28 * speed;
+          crust.material.opacity = xray ? 0.25 : 1.0;
+          crust.material.transparent = xray;
+          mantle.material.opacity = xray ? 0.35 : 1.0;
+          mantle.material.transparent = xray;
+          atmosphere.material.opacity = xray ? 0.25 : 0.14;
+          const pulse = 1 + Math.sin(time * 3) * 0.03;
+          innerCore.scale.setScalar(pulse);
+        }
+      };
+    }
+
+    // =========================================================
+    // THREE.JS VIEWPORTS (HERO + STUDIO)
+    // =========================================================
+    function createSceneSetup(containerEl, initialCamPos) {
+      const scene = new THREE.Scene();
+      const width = containerEl.clientWidth || 600;
+      const height = containerEl.clientHeight || 360;
+
+      const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+      camera.position.set(...initialCamPos);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      containerEl.innerHTML = '';
+      containerEl.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 1.6;
+      controls.maxDistance = 14;
+
+      const ambient = new THREE.AmbientLight(0xffffff, 1.15);
+      const dir1 = new THREE.DirectionalLight(0xffffff, 1.5);
+      dir1.position.set(4, 6, 5);
+      const dir2 = new THREE.DirectionalLight(0xbae6fd, 0.85);
+      dir2.position.set(-5, -2, -4);
+      scene.add(ambient, dir1, dir2);
+
+      function resize() {
+        const w = containerEl.clientWidth;
+        const h = containerEl.clientHeight;
+        if (w > 0 && h > 0) {
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+      }
+
+      window.addEventListener('resize', resize);
+      return { scene, camera, renderer, controls, resize };
+    }
+
+    // Hero Viewport
+    const heroEl = document.getElementById('hero-3d-canvas');
+    const heroSetup = createSceneSetup(heroEl, [0, 1.1, 5.4]);
+    let heroModelObj = buildLungsModel({ compact: true });
+    heroSetup.scene.add(heroModelObj.group);
+
+    // Studio Viewport
+    const studioEl = document.getElementById('studio-3d-canvas');
+    const studioSetup = createSceneSetup(studioEl, [0, 1.3, 6.4]);
+    let studioModelObj = buildLungsModel({ compact: false });
+    studioSetup.scene.add(studioModelObj.group);
+
+    function rebuildStudioModel(modId) {
+      studioSetup.scene.remove(studioModelObj.group);
+      if (modId === 'pernapasan') {
+        studioModelObj = buildLungsModel({ compact: false });
+        studioSetup.controls.target.set(0, 0.9, 0);
+      } else if (modId === 'jantung') {
+        studioModelObj = buildHeartModel({ compact: false });
+        studioSetup.controls.target.set(0, 0.9, 0);
+      } else if (modId === 'molekul') {
+        studioModelObj = buildWaterMoleculeModel({ compact: false });
+        studioSetup.controls.target.set(0, 0, 0);
+      } else if (modId === 'bumi') {
+        studioModelObj = buildEarthCutawayModel({ compact: false });
+        studioSetup.controls.target.set(0, 0, 0);
+      }
+      studioSetup.scene.add(studioModelObj.group);
+    }
+
+    function setHeroModel(type) {
+      state.heroModel = type;
+      heroSetup.scene.remove(heroModelObj.group);
+
+      document.querySelectorAll('.hero-tab').forEach((btn) => {
+        const active = btn.dataset.heroModel === type;
+        btn.className = active
+          ? 'hero-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white transition'
+          : 'hero-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition';
+      });
+
+      const badge = document.getElementById('hero-model-badge');
+      const caption = document.getElementById('hero-model-caption');
+      const openBtn = document.getElementById('hero-open-btn');
+
+      if (type === 'lungs') {
+        heroModelObj = buildLungsModel({ compact: true });
+        heroSetup.camera.position.set(0, 1.1, 5.4);
+        heroSetup.controls.target.set(0, 0.8, 0);
+        badge.textContent = 'Inspirasi & Ekspirasi Aktif';
+        caption.innerHTML = formatScienceText('3 lobus kanan, 2 lobus kiri + takik jantung, cincin trakea, dan aliran $\text{O}_2$ / $\text{CO}_2$.');
+        openBtn.onclick = () => openStudio('pernapasan');
+      } else if (type === 'molecule') {
+        heroModelObj = buildWaterMoleculeModel({ compact: true });
+        heroSetup.camera.position.set(0, 1.1, 5.2);
+        heroSetup.controls.target.set(0, 0, 0);
+        badge.textContent = 'VSEPR 104,5° · Polar';
+        caption.innerHTML = formatScienceText('Atom oksigen & dua hidrogen bersudut $104,5^\circ$, pasangan elektron bebas, dan awan elektron.');
+        openBtn.onclick = () => openStudio('molekul');
+      } else if (type === 'earth') {
+        heroModelObj = buildEarthCutawayModel({ compact: true });
+        heroSetup.camera.position.set(2.3, 1.6, 4.9);
+        heroSetup.controls.target.set(0, 0, 0);
+        badge.textContent = 'Irisan Inti & Mantel';
+        caption.textContent = 'Penampang kerak benua/samudra, mantel pijar, inti luar cair, dan inti dalam padat.';
+        openBtn.onclick = () => openStudio('bumi');
+      }
+
+      heroSetup.scene.add(heroModelObj.group);
+    }
+
+    // =========================================================
+    // HOTSPOTS PROJECTION
+    // =========================================================
+    const hotspotsLayer = document.getElementById('hotspots-layer');
+
+    function renderHotspots() {
+      const mod = MODULES[state.moduleId];
+      hotspotsLayer.innerHTML = '';
+      if (!state.showPins || state.view !== 'studio') return;
+
+      mod.parts.forEach((part, idx) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = `hotspot-pin pointer-events-auto ${idx === state.partIndex ? 'active' : ''}`;
+        el.dataset.idx = idx;
+        el.innerHTML = `
+          <div class="hotspot-dot">${idx + 1}</div>
+          <div class="hotspot-label">${formatScienceText(part.shortName)}</div>
+        `;
+        el.addEventListener('click', () => selectPart(idx));
+        hotspotsLayer.appendChild(el);
+      });
+    }
+
+    function updateHotspotPositions() {
+      if (!state.showPins || state.view !== 'studio') return;
+      const mod = MODULES[state.moduleId];
+      const container = document.getElementById('studio-viewport-container');
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (!w || !h) return;
+
+      studioSetup.camera.updateMatrixWorld();
+      studioModelObj.group.updateMatrixWorld();
+
+      const pins = hotspotsLayer.querySelectorAll('.hotspot-pin');
+      pins.forEach((pinEl) => {
+        const idx = Number(pinEl.dataset.idx);
+        const part = mod.parts[idx];
+        if (!part) return;
+        const vec = new THREE.Vector3(...part.pinPos);
+        vec.applyMatrix4(studioModelObj.group.matrixWorld);
+        vec.project(studioSetup.camera);
+
+        const behind = vec.z > 1;
+        const x = (vec.x * 0.5 + 0.5) * w;
+        const y = (-vec.y * 0.5 + 0.5) * h;
+
+        pinEl.style.left = `${x}px`;
+        pinEl.style.top = `${y}px`;
+        pinEl.style.opacity = behind ? '0.18' : '1';
+      });
+    }
+
+    // =========================================================
+    // STUDIO UI RENDERING & ACTIONS
+    // =========================================================
+    function renderStudioUI() {
+      const mod = MODULES[state.moduleId];
+      const part = mod.parts[state.partIndex] || mod.parts[0];
+
+      document.getElementById('breadcrumb-module-name').textContent = mod.title.replace(/\$.*?\$/g, 'H₂O');
+      document.getElementById('studio-mod-tag').textContent = mod.tag;
+      document.getElementById('studio-mod-title').innerHTML = formatScienceText(mod.title);
+      document.getElementById('studio-mod-subtitle').textContent = mod.subtitle;
+      document.getElementById('studio-parts-count').textContent = `${mod.parts.length} bagian`;
+
+      // Module tabs
+      document.querySelectorAll('.mod-tab').forEach((btn) => {
+        const active = btn.dataset.mod === state.moduleId;
+        btn.className = active
+          ? 'mod-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white transition'
+          : 'mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      });
+
+      // Parts list (left)
+      const partsList = document.getElementById('studio-parts-list');
+      partsList.innerHTML = '';
+      mod.parts.forEach((p, idx) => {
+        const active = idx === state.partIndex;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = active
+          ? 'w-full text-left px-3 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold flex items-center justify-between shadow-xs transition'
+          : 'w-full text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-between transition';
+        btn.innerHTML = `
+          <span class="truncate pr-2">${idx + 1}. ${formatScienceText(p.shortName)}</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 shrink-0 ${active ? 'text-white' : 'text-slate-400'}"></i>
+        `;
+        btn.onclick = () => selectPart(idx);
+        partsList.appendChild(btn);
+      });
+
+      // Bottom quick pills
+      const pillsBox = document.getElementById('bottom-part-pills');
+      pillsBox.innerHTML = '';
+      mod.parts.forEach((p, idx) => {
+        const active = idx === state.partIndex;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = active
+          ? 'px-2.5 py-1 rounded-full bg-teal-600 text-white text-[11px] font-bold shrink-0'
+          : 'px-2.5 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold shrink-0';
+        b.innerHTML = formatScienceText(p.shortName);
+        b.onclick = () => selectPart(idx);
+        pillsBox.appendChild(b);
+      });
+
+      // Sim presets
+      const simOpt = mod.simOptions[state.simIndex] || mod.simOptions[1];
+      document.getElementById('sim-label').textContent = mod.simLabel;
+      document.getElementById('sim-value-badge').textContent = simOpt.badge;
+      const presetsEl = document.getElementById('sim-presets');
+      presetsEl.innerHTML = '';
+      mod.simOptions.forEach((opt, idx) => {
+        const active = idx === state.simIndex;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = active
+          ? 'py-1.5 rounded-lg text-[11px] font-bold bg-sky-600 text-white'
+          : 'py-1.5 rounded-lg text-[11px] font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200';
+        btn.textContent = opt.label;
+        btn.onclick = () => {
+          state.simIndex = idx;
+          renderStudioUI();
+        };
+        presetsEl.appendChild(btn);
+      });
+
+      // Right detail panel
+      document.getElementById('detail-kicker').textContent = part.kicker;
+      document.getElementById('detail-title').innerHTML = formatScienceText(part.name);
+      document.getElementById('detail-tagline').innerHTML = formatScienceText(part.tagline);
+      document.getElementById('detail-desc').innerHTML = formatScienceText(part.desc);
+      document.getElementById('detail-funfact').innerHTML = formatScienceText(part.funfact);
+
+      const factsEl = document.getElementById('detail-facts');
+      factsEl.innerHTML = part.facts
+        .map(
+          (f) => `
+          <div class="rounded-xl bg-slate-50 border border-slate-200/80 px-3 py-2">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${formatScienceText(f.label)}</div>
+            <div class="text-xs font-bold text-slate-800 mt-0.5">${formatScienceText(f.value)}</div>
+          </div>
+        `
+        )
+        .join('');
+
+      const pathEl = document.getElementById('detail-pathway');
+      pathEl.innerHTML = part.pathway
+        .map(
+          (step, i) => `
+          <li class="flex items-center gap-2 text-slate-700 font-medium">
+            <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-extrabold flex items-center justify-center shrink-0">${i + 1}</span>
+            <span>${formatScienceText(step)}</span>
+          </li>
+        `
+        )
+        .join('');
+
+      lucide.createIcons();
+      renderHotspots();
+    }
+
+    function selectPart(idx) {
+      const mod = MODULES[state.moduleId];
+      state.partIndex = Math.max(0, Math.min(idx, mod.parts.length - 1));
+      const part = mod.parts[state.partIndex];
+
+      state.camAnim = {
+        pos: new THREE.Vector3(...part.camPos),
+        target: new THREE.Vector3(...part.camTarget),
+        progress: 0
+      };
+
+      renderStudioUI();
+    }
+
+    function selectModule(modId) {
+      if (!MODULES[modId]) return;
+      state.moduleId = modId;
+      state.partIndex = 0;
+      state.simIndex = MODULES[modId].defaultSimIndex ?? 1;
+      state.xray = false;
+      document.getElementById('btn-xray-label').textContent = 'X-Ray: Off';
+
+      rebuildStudioModel(modId);
+      const firstPart = MODULES[modId].parts[0];
+      studioSetup.camera.position.set(...firstPart.camPos);
+      studioSetup.controls.target.set(...firstPart.camTarget);
+      state.camAnim = null;
+
+      renderStudioUI();
+      studioSetup.resize();
+    }
+
+    function openStudio(modId = 'pernapasan') {
+      switchMainView('studio');
+      selectModule(modId);
+    }
+
+    function switchMainView(viewName) {
+      state.view = viewName;
+      const landingView = document.getElementById('view-landing');
+      const studioView = document.getElementById('view-studio');
+      const landingNav = document.getElementById('landing-nav');
+      const breadcrumb = document.getElementById('studio-breadcrumb');
+
+      if (viewName === 'studio') {
+        landingView.classList.add('hidden');
+        studioView.classList.remove('hidden');
+        landingNav.classList.add('hidden');
+        breadcrumb.classList.remove('hidden');
+        breadcrumb.classList.add('flex');
+        setTimeout(() => {
+          studioSetup.resize();
+          renderHotspots();
+          updateHotspotPositions();
+        }, 40);
+      } else {
+        studioView.classList.add('hidden');
+        landingView.classList.remove('hidden');
+        landingNav.classList.remove('hidden');
+        breadcrumb.classList.add('hidden');
+        breadcrumb.classList.remove('flex');
+        setTimeout(() => {
+          heroSetup.resize();
+        }, 40);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleXray() {
+      state.xray = !state.xray;
+      document.getElementById('btn-xray-label').textContent = state.xray ? 'X-Ray: On' : 'X-Ray: Off';
+    }
+
+    function toggleHotspots() {
+      state.showPins = !state.showPins;
+      document.getElementById('pin-toggle-label').textContent = state.showPins ? 'Pin Aktif' : 'Pin Sembunyi';
+      renderHotspots();
+      updateHotspotPositions();
+    }
+
+    function resetCamera() {
+      const part = MODULES[state.moduleId].parts[state.partIndex];
+      state.camAnim = {
+        pos: new THREE.Vector3(...part.camPos),
+        target: new THREE.Vector3(...part.camTarget),
+        progress: 0
+      };
+    }
+
+    // =========================================================
+    // QUIZ MODAL
+    // =========================================================
+    let quizAnswers = {};
+
+    function openQuizModal() {
+      const mod = MODULES[state.moduleId];
+      quizAnswers = {};
+      document.getElementById('quiz-modal-title').innerHTML = `Kuis · ${formatScienceText(mod.title)}`;
+      renderQuizQuestions();
+      const modal = document.getElementById('quiz-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeQuizModal() {
+      const modal = document.getElementById('quiz-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderQuizQuestions() {
+      const mod = MODULES[state.moduleId];
+      const body = document.getElementById('quiz-body');
+
+      const questionsHtml = mod.quiz
+        .map(
+          (item, qIdx) => `
+          <div class="mb-5 pb-4 border-b border-slate-100 last:border-none">
+            <p class="text-xs font-extrabold text-sky-700 mb-1">SOAL ${qIdx + 1} DARI ${mod.quiz.length}</p>
+            <p class="text-sm font-bold text-slate-900 mb-2.5">${formatScienceText(item.q)}</p>
+            <div class="space-y-1.5">
+              ${item.options
+                .map((opt, oIdx) => {
+                  const checked = quizAnswers[qIdx] === oIdx ? 'checked' : '';
+                  return `
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs font-medium text-slate-700">
+                      <input type="radio" name="q_${qIdx}" value="${oIdx}" ${checked} onchange="window.__setQuizAns(${qIdx}, ${oIdx})" class="accent-sky-600" />
+                      <span>${formatScienceText(opt)}</span>
+                    </label>
+                  `;
+                })
+                .join('')}
+            </div>
+          </div>
+        `
+        )
+        .join('');
+
+      body.innerHTML = `
+        ${questionsHtml}
+        <button onclick="window.__submitQuiz()" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm transition">
+          Kumpulkan Jawaban & Lihat Skor
+        </button>
+      `;
+    }
+
+    window.__setQuizAns = (qIdx, oIdx) => {
+      quizAnswers[qIdx] = oIdx;
+    };
+
+    window.__submitQuiz = () => {
+      const mod = MODULES[state.moduleId];
+      let correctCount = 0;
+
+      const reviewHtml = mod.quiz
+        .map((item, idx) => {
+          const picked = quizAnswers[idx];
+          const isCorrect = picked === item.ans;
+          if (isCorrect) correctCount++;
+
+          return `
+            <div class="p-3 rounded-xl border ${isCorrect ? 'bg-teal-50/70 border-teal-200' : 'bg-rose-50/70 border-rose-200'} mb-3">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-[11px] font-extrabold ${isCorrect ? 'text-teal-800' : 'text-rose-800'}">
+                  Soal ${idx + 1} · ${isCorrect ? 'Benar' : 'Perlu Ditinjau'}
+                </span>
+              </div>
+              <p class="text-xs font-bold text-slate-900">${formatScienceText(item.q)}</p>
+              <p class="text-xs text-slate-700 mt-1">
+                Jawaban benar: <strong>${formatScienceText(item.options[item.ans])}</strong>
+              </p>
+              <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${formatScienceText(item.exp)}</p>
+            </div>
+          `;
+        })
+        .join('');
+
+      const score = Math.round((correctCount / mod.quiz.length) * 100);
+      document.getElementById('quiz-body').innerHTML = `
+        <div class="text-center bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
+          <p class="text-xs font-bold text-slate-500">SKOR KAMU</p>
+          <p class="text-3xl font-extrabold text-sky-700 mt-0.5">${score} / 100</p>
+          <p class="text-xs font-semibold text-slate-700 mt-1">
+            Menjawab benar ${correctCount} dari ${mod.quiz.length} soal · <strong>anwarpr</strong>
+          </p>
+        </div>
+        ${reviewHtml}
+        <div class="flex gap-2 pt-2">
+          <button onclick="openQuizModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs">
+            Ulangi Kuis
+          </button>
+          <button onclick="closeQuizModal()" class="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs">
+            Selesai
+          </button>
+        </div>
+      `;
+    };
+
+    // =========================================================
+    // QR MATRIX RENDERER & SHARE MODAL
+    // =========================================================
+    function drawQrMatrix(canvas, text) {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const modules = 21;
+      const cell = Math.floor(size / modules);
+      const offset = Math.floor((size - cell * modules) / 2);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      const grid = Array.from({ length: modules }, () => Array(modules).fill(false));
+
+      function drawFinder(r0, c0) {
+        for (let r = -1; r <= 7; r++) {
+          for (let c = -1; c <= 7; c++) {
+            const rr = r0 + r;
+            const cc = c0 + c;
+            if (rr >= 0 && rr < modules && cc >= 0 && cc < modules) {
+              const border = r === 0 || r === 6 || c === 0 || c === 6;
+              const center = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+              grid[rr][cc] = border || center;
+            }
+          }
+        }
+      }
+
+      drawFinder(0, 0);
+      drawFinder(0, modules - 7);
+      drawFinder(modules - 7, 0);
+
+      // Deterministic data pattern from text
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+
+      for (let r = 0; r < modules; r++) {
+        for (let c = 0; c < modules; c++) {
+          const inFinder =
+            (r < 8 && c < 8) ||
+            (r < 8 && c >= modules - 8) ||
+            (r >= modules - 8 && c < 8);
+          if (!inFinder) {
+            const bit = ((hash >>> ((r * 7 + c * 13) % 24)) ^ (r * 3 + c)) & 1;
+            grid[r][c] = bit === 1;
+          }
+        }
+      }
+
+      ctx.fillStyle = '#0f172a';
+      for (let r = 0; r < modules; r++) {
+        for (let c = 0; c < modules; c++) {
+          if (grid[r][c]) {
+            ctx.fillRect(offset + c * cell, offset + r * cell, cell - 0.5, cell - 0.5);
+          }
+        }
+      }
+    }
+
+    function openQrModal() {
+      const url = window.location.href || 'https://3dfunlearn-anwarpr.vercel.app';
+      document.getElementById('share-url-input').value = url;
+      document.getElementById('copy-feedback').textContent = '';
+      drawQrMatrix(document.getElementById('modal-qr-canvas'), `${url}|anwarpr`);
+      const modal = document.getElementById('qr-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeQrModal() {
+      const modal = document.getElementById('qr-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function copyShareUrl() {
+      const input = document.getElementById('share-url-input');
+      input.select();
+      navigator.clipboard?.writeText(input.value).catch(() => {});
+      document.getElementById('copy-feedback').textContent = 'Tautan berhasil disalin (anwarpr)';
+    }
+
+    // =========================================================
+    // ANIMATION LOOP
+    // =========================================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.getElapsedTime();
+
+      if (state.view === 'landing') {
+        const heroSpeed = state.heroModel === 'lungs' ? 1.0 : 1.0;
+        const breath = Math.sin(elapsed * 2.2);
+        heroModelObj.update(elapsed, breath, false);
+        heroSetup.controls.update();
+        heroSetup.renderer.render(heroSetup.scene, heroSetup.camera);
+      } else {
+        const mod = MODULES[state.moduleId];
+        const simOpt = mod.simOptions[state.simIndex] || mod.simOptions[1];
+        state.simTime += dt * simOpt.speed;
+
+        const breathPhase = Math.sin(state.simTime * 2.3);
+        const hudStatus = document.getElementById('hud-status-text');
+        const hudMetric = document.getElementById('hud-metric-text');
+
+        if (state.moduleId === 'pernapasan') {
+          const isInhale = breathPhase >= 0;
+          hudStatus.textContent =
+            simOpt.speed === 0
+              ? 'Simulasi Dijeda · Amati Struktur 3D'
+              : isInhale
+                ? 'Fase: Inspirasi · Rongga Dada Mengembang'
+                : 'Fase: Ekspirasi · Udara Keluar Paru-paru';
+          hudMetric.textContent =
+            simOpt.speed === 0
+              ? 'Mode Jeda'
+              : isInhale
+                ? 'Diafragma Kontraksi (Turun)'
+                : 'Diafragma Relaksasi (Naik)';
+        } else if (state.moduleId === 'jantung') {
+          const systole = Math.sin(state.simTime * 5.2) > 0;
+          hudStatus.textContent = systole ? 'Fase Sistol · Memompa Darah' : 'Fase Diastol · Pengisian Ruang';
+          hudMetric.textContent = `Denyut: ${simOpt.badge}`;
+        } else if (state.moduleId === 'molekul') {
+          hudStatus.textContent = 'Geometri VSEPR Sudut Ikatan 104,5°';
+          hudMetric.textContent = `Kecepatan Orbital: ${simOpt.badge}`;
+        } else if (state.moduleId === 'bumi') {
+          hudStatus.textContent = 'Irisan Lapisan Geologi Bumi (90°)';
+          hudMetric.textContent = `Rotasi: ${simOpt.badge}`;
+        }
+
+        if (state.camAnim) {
+          state.camAnim.progress = Math.min(1, state.camAnim.progress + dt * 2.4);
+          const ease = 1 - Math.pow(1 - state.camAnim.progress, 3);
+          studioSetup.camera.position.lerp(state.camAnim.pos, ease * 0.25);
+          studioSetup.controls.target.lerp(state.camAnim.target, ease * 0.25);
+          if (state.camAnim.progress >= 1) {
+            state.camAnim = null;
+          }
+        }
+
+        studioModelObj.update(state.simTime, breathPhase, state.xray);
+        studioSetup.controls.update();
+        studioSetup.renderer.render(studioSetup.scene, studioSetup.camera);
+        updateHotspotPositions();
+      }
+    }
+
+    // Expose globals for inline handlers
+    window.switchMainView = switchMainView;
+    window.openStudio = openStudio;
+    window.selectModule = selectModule;
+    window.setHeroModel = setHeroModel;
+    window.toggleXray = toggleXray;
+    window.toggleHotspots = toggleHotspots;
+    window.resetCamera = resetCamera;
+    window.openQuizModal = openQuizModal;
+    window.closeQuizModal = closeQuizModal;
+    window.openQrModal = openQrModal;
+    window.closeQrModal = closeQrModal;
+    window.copyShareUrl = copyShareUrl;
+
+    // Initial render
+    drawQrMatrix(document.getElementById('landing-qr-canvas'), 'https://3dfunlearn-anwarpr.vercel.app|anwarpr');
+    renderStudioUI();
+    lucide.createIcons();
+    animate();
+  </script>
+</body>
+</html>
